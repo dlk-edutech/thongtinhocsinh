@@ -150,7 +150,7 @@
         // Xử lý đổi mật khẩu
         nutDoiMatKhau.addEventListener('click', () => {
             const nhapMatKhauCu = prompt("Vui lòng nhập mật khẩu quản trị viên hiện tại:");
-            if (nhapMatKhauCu === null) return; // Hủy thao tác
+            if (nhapMatKhauCu === null) return;
 
             if (nhapMatKhauCu !== matKhauHienTai) {
                 alert("Mật khẩu hiện tại không đúng!");
@@ -197,12 +197,24 @@
                 const tenTrangDau = bangTinh.SheetNames[0];
                 const trangDuLieu = bangTinh.Sheets[tenTrangDau];
                 
-                // Lấy dữ liệu dạng JSON, defval: "" đảm bảo các ô trống không bị bỏ qua key
+                // Trích xuất chính xác thứ tự cột (header) từ hàng đầu tiên của file Excel
+                const mangHaiChieu = XLSX.utils.sheet_to_json(trangDuLieu, { header: 1 });
+                let thuTuCot = [];
+                if (mangHaiChieu.length > 0) {
+                    thuTuCot = mangHaiChieu[0].filter(cot => cot !== undefined && cot !== null && String(cot).trim() !== "");
+                }
+
+                // Lấy dữ liệu dạng JSON
                 const jsonDuLieu = XLSX.utils.sheet_to_json(trangDuLieu, { defval: "" });
 
                 if (jsonDuLieu.length > 0) {
-                    // Lệnh set tự động ghi đè, xóa sạch dữ liệu cũ và thay bằng dữ liệu mới
-                    set(duongDanDuLieu, jsonDuLieu)
+                    // Đóng gói cả mảng thứ tự cột và mảng dữ liệu để đẩy lên Firebase
+                    const duLieuDayLen = {
+                        thuTu: thuTuCot,
+                        danhSach: jsonDuLieu
+                    };
+
+                    set(duongDanDuLieu, duLieuDayLen)
                         .then(() => {
                             trangThai.textContent = "Nạp dữ liệu thành công!";
                             fileNhap.value = ""; 
@@ -221,13 +233,15 @@
 
         // Lắng nghe dữ liệu từ Firebase
         onValue(duongDanDuLieu, (snapshot) => {
-            const duLieu = snapshot.val();
-            if (duLieu && duLieu.length > 0) {
-                // Đảm bảo không lấy các phần tử null sinh ra do mảng Firebase
-                duLieuGoc = duLieu.filter(hang => hang !== null); 
+            const duLieuNhan = snapshot.val();
+            
+            // Kiểm tra cấu trúc dữ liệu mới (có thuộc tính danhSach)
+            if (duLieuNhan && duLieuNhan.danhSach && duLieuNhan.danhSach.length > 0) {
+                duLieuGoc = duLieuNhan.danhSach.filter(hang => hang !== null); 
                 
                 if (duLieuGoc.length > 0) {
-                    const tatCaCot = Object.keys(duLieuGoc[0]);
+                    // Lấy mảng thứ tự cột chuẩn từ Firebase (nếu có), nếu không có thì fallback lấy ngẫu nhiên
+                    const tatCaCot = duLieuNhan.thuTu || Object.keys(duLieuGoc[0]);
                     
                     // Chỉ giữ lại những cột có ít nhất một hàng chứa dữ liệu
                     cacCot = tatCaCot.filter(cot => {
@@ -273,7 +287,6 @@
             }
 
             let html = '';
-            // Quá trình lặp mảng đảm bảo hiển thị đúng thứ tự file đã nạp
             duLieuHienThi.forEach(hang => {
                 html += '<tr>';
                 cacCot.forEach(cot => {
