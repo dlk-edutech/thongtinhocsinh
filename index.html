@@ -235,12 +235,11 @@
         onValue(duongDanDuLieu, (snapshot) => {
             const duLieuNhan = snapshot.val();
             
-            // Kiểm tra cấu trúc dữ liệu mới (có thuộc tính danhSach)
+            // Kiểm tra cấu trúc dữ liệu mới
             if (duLieuNhan && duLieuNhan.danhSach && duLieuNhan.danhSach.length > 0) {
                 duLieuGoc = duLieuNhan.danhSach.filter(hang => hang !== null); 
                 
                 if (duLieuGoc.length > 0) {
-                    // Lấy mảng thứ tự cột chuẩn từ Firebase (nếu có), nếu không có thì fallback lấy ngẫu nhiên
                     const tatCaCot = duLieuNhan.thuTu || Object.keys(duLieuGoc[0]);
                     
                     // Chỉ giữ lại những cột có ít nhất một hàng chứa dữ liệu
@@ -249,7 +248,8 @@
                     });
 
                     taoKhungBang();
-                    capNhatThanBang(duLieuGoc);
+                    // Gọi hàm cập nhật với cờ chuaCoDieuKien = true để ẩn dữ liệu ban đầu
+                    capNhatThanBang([], true);
                 }
             } else {
                 khungBang.innerHTML = "<p>Chưa có dữ liệu trên hệ thống. Vui lòng nạp từ file Excel.</p>";
@@ -277,12 +277,18 @@
             });
         }
 
-        function capNhatThanBang(duLieuHienThi) {
+        // Bổ sung tham số chuaCoDieuKien để hiển thị thông báo thay vì hiện bảng rỗng báo lỗi
+        function capNhatThanBang(duLieuHienThi, chuaCoDieuKien = false) {
             const thanBang = document.getElementById('thanBang');
             if (!thanBang) return;
 
+            if (chuaCoDieuKien) {
+                thanBang.innerHTML = `<tr><td colspan="${cacCot.length}" style="text-align:center; color: #555; font-style: italic;">Vui lòng nhập thông tin vào ít nhất 1 ô lọc để xem dữ liệu.</td></tr>`;
+                return;
+            }
+
             if (!duLieuHienThi || duLieuHienThi.length === 0) {
-                thanBang.innerHTML = `<tr><td colspan="${cacCot.length}" style="text-align:center;">Không tìm thấy dữ liệu phù hợp</td></tr>`;
+                thanBang.innerHTML = `<tr><td colspan="${cacCot.length}" style="text-align:center; color: red;">Không tìm thấy dữ liệu phù hợp.</td></tr>`;
                 return;
             }
 
@@ -300,13 +306,21 @@
         function locDuLieu() {
             const cacOLoc = document.querySelectorAll('.oLoc');
             let dieuKien = {};
+            let coDieuKien = false;
 
             cacOLoc.forEach(oNhap => {
                 const giaTri = oNhap.value.trim().toLowerCase();
                 if (giaTri) {
                     dieuKien[oNhap.dataset.cot] = giaTri;
+                    coDieuKien = true; // Bật cờ nếu có ít nhất 1 ô có dữ liệu
                 }
             });
+
+            // Nếu không có thông tin lọc nào, hiển thị lại thông báo chờ
+            if (!coDieuKien) {
+                capNhatThanBang([], true);
+                return;
+            }
 
             const duLieuDaLoc = duLieuGoc.filter(hang => {
                 for (let cot in dieuKien) {
@@ -318,7 +332,8 @@
                 return true;
             });
 
-            capNhatThanBang(duLieuDaLoc);
+            // Cập nhật bảng với cờ chuaCoDieuKien = false
+            capNhatThanBang(duLieuDaLoc, false);
         }
     </script>
 </body>
