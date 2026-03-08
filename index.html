@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tìm kiếm thông tin học sinh</title>
+    <title>SỞ GD & ĐT ĐẮK LẮK - TRƯỜNG THPT SỐ 1 TRẦN PHÚ</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
@@ -12,6 +12,21 @@
             font-family: Arial, sans-serif;
             margin: 20px;
             background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            min-height: 95vh;
+        }
+        .phan-tieu-de {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .phan-tieu-de h2 {
+            margin: 5px 0;
+            color: #333;
+        }
+        .phan-tieu-de h3 {
+            margin: 10px 0 0 0;
+            color: #007bff;
         }
         .khung-dieukhien {
             background-color: #fff;
@@ -27,9 +42,16 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            margin-right: 5px;
         }
         button:hover {
             background-color: #0056b3;
+        }
+        .nut-phu {
+            background-color: #6c757d;
+        }
+        .nut-phu:hover {
+            background-color: #5a6268;
         }
         table {
             border-collapse: collapse;
@@ -52,24 +74,47 @@
             border: 1px solid #ccc;
             border-radius: 3px;
         }
+        .noi-dung-chinh {
+            flex: 1;
+        }
+        .phan-ban-quyen {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            font-size: 14px;
+            color: #555;
+            border-top: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
 
-    <div class="khung-dieukhien">
-        <h2>Hệ Thống Tìm Kiếm Thông Tin Học Sinh</h2>
-        <input type="file" id="fileNhap" accept=".xlsx, .xls">
-        <button id="nutTaiLen">Nạp dữ liệu Excel</button>
-        <span id="trangThai" style="margin-left: 10px; color: green; font-weight: bold;"></span>
+    <div class="phan-tieu-de">
+        <h2>SỞ GD & ĐT ĐẮK LẮK</h2>
+        <h2>TRƯỜNG THPT SỐ 1 TRẦN PHÚ</h2>
+        <h3>Hệ Thống Tìm Kiếm Thông Tin Học Sinh</h3>
     </div>
 
-    <div id="khungBang"></div>
+    <div class="noi-dung-chinh">
+        <div class="khung-dieukhien">
+            <input type="file" id="fileNhap" accept=".xlsx, .xls">
+            <button id="nutTaiLen">Nạp dữ liệu Excel</button>
+            <button id="nutDoiMatKhau" class="nut-phu">Đổi mật khẩu</button>
+            <span id="trangThai" style="margin-left: 10px; color: green; font-weight: bold;"></span>
+        </div>
+
+        <div id="khungBang"></div>
+    </div>
+
+    <div class="phan-ban-quyen">
+        Bản quyền: Dlk Edu Tech - Phát triển bởi tranhongdan@tranphudlk.edu.vn
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-        // Cấu hình Firebase đã được cập nhật
+        // Cấu hình Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyASafVpSGkoJbAY9xe0Q09gUmtUL2J7NI8",
             authDomain: "stdin4.firebaseapp.com",
@@ -83,20 +128,63 @@
         const ungDung = initializeApp(firebaseConfig);
         const coSoDuLieu = getDatabase(ungDung);
         const duongDanDuLieu = ref(coSoDuLieu, 'danh_sach_hoc_sinh');
+        const duongDanMatKhau = ref(coSoDuLieu, 'mat_khau_admin');
 
         let duLieuGoc = [];
         let cacCot = [];
+        let matKhauHienTai = "admin"; // Mật khẩu mặc định
 
         const fileNhap = document.getElementById('fileNhap');
         const nutTaiLen = document.getElementById('nutTaiLen');
+        const nutDoiMatKhau = document.getElementById('nutDoiMatKhau');
         const khungBang = document.getElementById('khungBang');
         const trangThai = document.getElementById('trangThai');
+
+        // Lắng nghe dữ liệu mật khẩu từ Firebase
+        onValue(duongDanMatKhau, (snapshot) => {
+            if (snapshot.exists()) {
+                matKhauHienTai = snapshot.val();
+            }
+        });
+
+        // Xử lý đổi mật khẩu
+        nutDoiMatKhau.addEventListener('click', () => {
+            const nhapMatKhauCu = prompt("Vui lòng nhập mật khẩu quản trị viên hiện tại:");
+            if (nhapMatKhauCu === null) return; // Hủy thao tác
+
+            if (nhapMatKhauCu !== matKhauHienTai) {
+                alert("Mật khẩu hiện tại không đúng!");
+                return;
+            }
+
+            const matKhauMoi = prompt("Nhập mật khẩu mới:");
+            if (matKhauMoi === null || matKhauMoi.trim() === "") {
+                alert("Mật khẩu mới không hợp lệ!");
+                return;
+            }
+
+            set(duongDanMatKhau, matKhauMoi)
+                .then(() => {
+                    alert("Đổi mật khẩu thành công!");
+                })
+                .catch((loi) => {
+                    alert("Lỗi khi lưu mật khẩu mới!");
+                    console.error(loi);
+                });
+        });
 
         // Xử lý nạp file Excel và đẩy lên Firebase
         nutTaiLen.addEventListener('click', () => {
             const file = fileNhap.files[0];
             if (!file) {
                 alert("Vui lòng chọn file Excel trước khi nạp!");
+                return;
+            }
+
+            // Yêu cầu mật khẩu admin
+            const matKhau = prompt("Vui lòng nhập mật khẩu quản trị viên để cập nhật dữ liệu:");
+            if (matKhau !== matKhauHienTai) {
+                alert("Sai mật khẩu! Bạn không có quyền nạp dữ liệu.");
                 return;
             }
 
@@ -108,9 +196,12 @@
                 const bangTinh = XLSX.read(duLieu, { type: 'array' });
                 const tenTrangDau = bangTinh.SheetNames[0];
                 const trangDuLieu = bangTinh.Sheets[tenTrangDau];
+                
+                // Lấy dữ liệu dạng JSON, defval: "" đảm bảo các ô trống không bị bỏ qua key
                 const jsonDuLieu = XLSX.utils.sheet_to_json(trangDuLieu, { defval: "" });
 
                 if (jsonDuLieu.length > 0) {
+                    // Lệnh set tự động ghi đè, xóa sạch dữ liệu cũ và thay bằng dữ liệu mới
                     set(duongDanDuLieu, jsonDuLieu)
                         .then(() => {
                             trangThai.textContent = "Nạp dữ liệu thành công!";
@@ -132,10 +223,20 @@
         onValue(duongDanDuLieu, (snapshot) => {
             const duLieu = snapshot.val();
             if (duLieu && duLieu.length > 0) {
-                duLieuGoc = duLieu;
-                cacCot = Object.keys(duLieuGoc[0]);
-                taoKhungBang();
-                capNhatThanBang(duLieuGoc);
+                // Đảm bảo không lấy các phần tử null sinh ra do mảng Firebase
+                duLieuGoc = duLieu.filter(hang => hang !== null); 
+                
+                if (duLieuGoc.length > 0) {
+                    const tatCaCot = Object.keys(duLieuGoc[0]);
+                    
+                    // Chỉ giữ lại những cột có ít nhất một hàng chứa dữ liệu
+                    cacCot = tatCaCot.filter(cot => {
+                        return duLieuGoc.some(hang => hang[cot] !== undefined && hang[cot] !== null && String(hang[cot]).trim() !== "");
+                    });
+
+                    taoKhungBang();
+                    capNhatThanBang(duLieuGoc);
+                }
             } else {
                 khungBang.innerHTML = "<p>Chưa có dữ liệu trên hệ thống. Vui lòng nạp từ file Excel.</p>";
             }
@@ -172,6 +273,7 @@
             }
 
             let html = '';
+            // Quá trình lặp mảng đảm bảo hiển thị đúng thứ tự file đã nạp
             duLieuHienThi.forEach(hang => {
                 html += '<tr>';
                 cacCot.forEach(cot => {
