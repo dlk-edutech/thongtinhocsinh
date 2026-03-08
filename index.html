@@ -15,6 +15,11 @@
             display: flex;
             flex-direction: column;
             min-height: 95vh;
+            position: relative;
+        }
+        .khung-top-right {
+            text-align: right;
+            margin-bottom: 10px;
         }
         .phan-tieu-de {
             text-align: center;
@@ -43,6 +48,7 @@
             border-radius: 4px;
             cursor: pointer;
             margin-right: 5px;
+            margin-bottom: 5px;
         }
         button:hover {
             background-color: #0056b3;
@@ -89,16 +95,21 @@
 </head>
 <body>
 
+    <div class="khung-top-right">
+        <button id="nutDangNhap" class="nut-phu">Đăng nhập quản lý</button>
+    </div>
+
     <div class="phan-tieu-de">
-        <h2>SỞ GD & ĐT ĐẮK LẮK</h2>
-        <h2>TRƯỜNG THPT SỐ 1 TRẦN PHÚ</h2>
-        <h3>Hệ Thống Tìm Kiếm Thông Tin Học Sinh</h3>
+        <h2 id="tieuDe1">SỞ GD & ĐT ĐẮK LẮK</h2>
+        <h2 id="tieuDe2">TRƯỜNG THPT SỐ 1 TRẦN PHÚ</h2>
+        <h3 id="tieuDe3">Hệ Thống Tìm Kiếm Thông Tin Học Sinh</h3>
     </div>
 
     <div class="noi-dung-chinh">
-        <div class="khung-dieukhien">
+        <div id="khungQuanLy" class="khung-dieukhien" style="display: none;">
             <input type="file" id="fileNhap" accept=".xlsx, .xls">
             <button id="nutTaiLen">Nạp dữ liệu Excel</button>
+            <button id="nutDoiTieuDe" class="nut-phu">Đổi tiêu đề</button>
             <button id="nutDoiMatKhau" class="nut-phu">Đổi mật khẩu</button>
             <span id="trangThai" style="margin-left: 10px; color: green; font-weight: bold;"></span>
         </div>
@@ -129,27 +140,88 @@
         const coSoDuLieu = getDatabase(ungDung);
         const duongDanDuLieu = ref(coSoDuLieu, 'danh_sach_hoc_sinh');
         const duongDanMatKhau = ref(coSoDuLieu, 'mat_khau_admin');
+        const duongDanTieuDe = ref(coSoDuLieu, 'tieu_de_trang');
 
         let duLieuGoc = [];
         let cacCot = [];
-        let matKhauHienTai = "admin"; // Mật khẩu mặc định
+        let matKhauHienTai = "admin";
+        let trangThaiDangNhap = false;
+        
+        // Tiêu đề mặc định nếu trên Firebase chưa có
+        let duLieuTieuDe = {
+            dong1: "SỞ GD & ĐT ĐẮK LẮK",
+            dong2: "TRƯỜNG THPT SỐ 1 TRẦN PHÚ",
+            dong3: "Hệ Thống Tìm Kiếm Thông Tin Học Sinh"
+        };
 
         const fileNhap = document.getElementById('fileNhap');
         const nutTaiLen = document.getElementById('nutTaiLen');
         const nutDoiMatKhau = document.getElementById('nutDoiMatKhau');
+        const nutDangNhap = document.getElementById('nutDangNhap');
+        const nutDoiTieuDe = document.getElementById('nutDoiTieuDe');
+        const khungQuanLy = document.getElementById('khungQuanLy');
         const khungBang = document.getElementById('khungBang');
         const trangThai = document.getElementById('trangThai');
+        const tieuDe1 = document.getElementById('tieuDe1');
+        const tieuDe2 = document.getElementById('tieuDe2');
+        const tieuDe3 = document.getElementById('tieuDe3');
 
-        // Lắng nghe dữ liệu mật khẩu từ Firebase
+        // Lắng nghe dữ liệu mật khẩu
         onValue(duongDanMatKhau, (snapshot) => {
             if (snapshot.exists()) {
                 matKhauHienTai = snapshot.val();
             }
         });
 
+        // Lắng nghe dữ liệu tiêu đề
+        onValue(duongDanTieuDe, (snapshot) => {
+            if (snapshot.exists()) {
+                duLieuTieuDe = snapshot.val();
+                tieuDe1.textContent = duLieuTieuDe.dong1;
+                tieuDe2.textContent = duLieuTieuDe.dong2;
+                tieuDe3.textContent = duLieuTieuDe.dong3;
+                document.title = duLieuTieuDe.dong1 + " - " + duLieuTieuDe.dong2;
+            }
+        });
+
+        // Xử lý đăng nhập / đăng xuất
+        nutDangNhap.addEventListener('click', () => {
+            if (!trangThaiDangNhap) {
+                const nhapMk = prompt("Vui lòng nhập mật khẩu quản lý:");
+                if (nhapMk === matKhauHienTai) {
+                    trangThaiDangNhap = true;
+                    khungQuanLy.style.display = "block";
+                    nutDangNhap.textContent = "Đăng xuất";
+                } else if (nhapMk !== null) {
+                    alert("Sai mật khẩu!");
+                }
+            } else {
+                trangThaiDangNhap = false;
+                khungQuanLy.style.display = "none";
+                nutDangNhap.textContent = "Đăng nhập quản lý";
+            }
+        });
+
+        // Xử lý đổi tiêu đề
+        nutDoiTieuDe.addEventListener('click', () => {
+            const d1 = prompt("Nhập tiêu đề dòng 1:", duLieuTieuDe.dong1);
+            if (d1 === null) return;
+            const d2 = prompt("Nhập tiêu đề dòng 2:", duLieuTieuDe.dong2);
+            if (d2 === null) return;
+            const d3 = prompt("Nhập tiêu đề dòng 3:", duLieuTieuDe.dong3);
+            if (d3 === null) return;
+
+            set(duongDanTieuDe, { dong1: d1, dong2: d2, dong3: d3 })
+                .then(() => alert("Cập nhật tiêu đề thành công!"))
+                .catch((loi) => {
+                    alert("Lỗi khi lưu tiêu đề!");
+                    console.error(loi);
+                });
+        });
+
         // Xử lý đổi mật khẩu
         nutDoiMatKhau.addEventListener('click', () => {
-            const nhapMatKhauCu = prompt("Vui lòng nhập mật khẩu quản trị viên hiện tại:");
+            const nhapMatKhauCu = prompt("Vui lòng xác nhận lại mật khẩu hiện tại:");
             if (nhapMatKhauCu === null) return;
 
             if (nhapMatKhauCu !== matKhauHienTai) {
@@ -164,27 +236,18 @@
             }
 
             set(duongDanMatKhau, matKhauMoi)
-                .then(() => {
-                    alert("Đổi mật khẩu thành công!");
-                })
+                .then(() => alert("Đổi mật khẩu thành công!"))
                 .catch((loi) => {
                     alert("Lỗi khi lưu mật khẩu mới!");
                     console.error(loi);
                 });
         });
 
-        // Xử lý nạp file Excel và đẩy lên Firebase
+        // Xử lý nạp file Excel
         nutTaiLen.addEventListener('click', () => {
             const file = fileNhap.files[0];
             if (!file) {
                 alert("Vui lòng chọn file Excel trước khi nạp!");
-                return;
-            }
-
-            // Yêu cầu mật khẩu admin
-            const matKhau = prompt("Vui lòng nhập mật khẩu quản trị viên để cập nhật dữ liệu:");
-            if (matKhau !== matKhauHienTai) {
-                alert("Sai mật khẩu! Bạn không có quyền nạp dữ liệu.");
                 return;
             }
 
@@ -197,18 +260,15 @@
                 const tenTrangDau = bangTinh.SheetNames[0];
                 const trangDuLieu = bangTinh.Sheets[tenTrangDau];
                 
-                // Trích xuất chính xác thứ tự cột (header) từ hàng đầu tiên của file Excel
                 const mangHaiChieu = XLSX.utils.sheet_to_json(trangDuLieu, { header: 1 });
                 let thuTuCot = [];
                 if (mangHaiChieu.length > 0) {
                     thuTuCot = mangHaiChieu[0].filter(cot => cot !== undefined && cot !== null && String(cot).trim() !== "");
                 }
 
-                // Lấy dữ liệu dạng JSON
                 const jsonDuLieu = XLSX.utils.sheet_to_json(trangDuLieu, { defval: "" });
 
                 if (jsonDuLieu.length > 0) {
-                    // Đóng gói cả mảng thứ tự cột và mảng dữ liệu để đẩy lên Firebase
                     const duLieuDayLen = {
                         thuTu: thuTuCot,
                         danhSach: jsonDuLieu
@@ -231,24 +291,21 @@
             boDoc.readAsArrayBuffer(file);
         });
 
-        // Lắng nghe dữ liệu từ Firebase
+        // Lắng nghe dữ liệu học sinh
         onValue(duongDanDuLieu, (snapshot) => {
             const duLieuNhan = snapshot.val();
             
-            // Kiểm tra cấu trúc dữ liệu mới
             if (duLieuNhan && duLieuNhan.danhSach && duLieuNhan.danhSach.length > 0) {
                 duLieuGoc = duLieuNhan.danhSach.filter(hang => hang !== null); 
                 
                 if (duLieuGoc.length > 0) {
                     const tatCaCot = duLieuNhan.thuTu || Object.keys(duLieuGoc[0]);
                     
-                    // Chỉ giữ lại những cột có ít nhất một hàng chứa dữ liệu
                     cacCot = tatCaCot.filter(cot => {
                         return duLieuGoc.some(hang => hang[cot] !== undefined && hang[cot] !== null && String(hang[cot]).trim() !== "");
                     });
 
                     taoKhungBang();
-                    // Gọi hàm cập nhật với cờ chuaCoDieuKien = true để ẩn dữ liệu ban đầu
                     capNhatThanBang([], true);
                 }
             } else {
@@ -277,7 +334,6 @@
             });
         }
 
-        // Bổ sung tham số chuaCoDieuKien để hiển thị thông báo thay vì hiện bảng rỗng báo lỗi
         function capNhatThanBang(duLieuHienThi, chuaCoDieuKien = false) {
             const thanBang = document.getElementById('thanBang');
             if (!thanBang) return;
@@ -312,11 +368,10 @@
                 const giaTri = oNhap.value.trim().toLowerCase();
                 if (giaTri) {
                     dieuKien[oNhap.dataset.cot] = giaTri;
-                    coDieuKien = true; // Bật cờ nếu có ít nhất 1 ô có dữ liệu
+                    coDieuKien = true;
                 }
             });
 
-            // Nếu không có thông tin lọc nào, hiển thị lại thông báo chờ
             if (!coDieuKien) {
                 capNhatThanBang([], true);
                 return;
@@ -332,7 +387,6 @@
                 return true;
             });
 
-            // Cập nhật bảng với cờ chuaCoDieuKien = false
             capNhatThanBang(duLieuDaLoc, false);
         }
     </script>
