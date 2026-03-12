@@ -59,6 +59,18 @@
         .nut-phu:hover {
             background-color: #5a6268;
         }
+        .nut-thanh-cong {
+            background-color: #28a745;
+        }
+        .nut-thanh-cong:hover {
+            background-color: #218838;
+        }
+        .nut-canh-bao {
+            background-color: #dc3545;
+        }
+        .nut-canh-bao:hover {
+            background-color: #c82333;
+        }
         table {
             border-collapse: collapse;
             width: 100%;
@@ -91,11 +103,48 @@
             color: #555;
             border-top: 1px solid #ddd;
         }
+        /* CSS cho chuc nang sua */
+        .o-da-sua {
+            background-color: #fff3cd !important;
+            color: #856404;
+            font-weight: bold;
+        }
+        .lop-phu {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        .khung-modal {
+            display: none; 
+            position: fixed; 
+            top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            z-index: 1000; 
+            max-height: 85vh; 
+            overflow-y: auto;
+            min-width: 350px;
+        }
+        .nhap-sua {
+            width: 100%; 
+            padding: 8px; 
+            margin-top: 5px; 
+            margin-bottom: 15px; 
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
 
     <div class="khung-top-right">
+        <button id="nutSuaDuLieu" class="nut-thanh-cong">Sửa dữ liệu</button>
         <button id="nutDangNhap" class="nut-phu">Đăng nhập quản lý</button>
     </div>
 
@@ -111,10 +160,21 @@
             <button id="nutTaiLen">Nạp dữ liệu Excel</button>
             <button id="nutDoiTieuDe" class="nut-phu">Đổi tiêu đề</button>
             <button id="nutDoiMatKhau" class="nut-phu">Đổi mật khẩu</button>
+            <button id="nutMoTatSua" class="nut-phu">Mở/Tắt quyền sửa</button>
             <span id="trangThai" style="margin-left: 10px; color: green; font-weight: bold;"></span>
         </div>
 
         <div id="khungBang"></div>
+    </div>
+
+    <div id="lopPhuModal" class="lop-phu"></div>
+    <div id="khungSuaDuLieu" class="khung-modal">
+        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Sửa thông tin</h3>
+        <div id="noiDungSua"></div>
+        <div style="text-align: right; margin-top: 15px;">
+            <button id="nutLuuSua" class="nut-thanh-cong">Lưu thay đổi</button>
+            <button id="nutDongSua" class="nut-phu">Hủy</button>
+        </div>
     </div>
 
     <div class="phan-ban-quyen">
@@ -141,11 +201,15 @@
         const duongDanDuLieu = ref(coSoDuLieu, 'danh_sach_hoc_sinh');
         const duongDanMatKhau = ref(coSoDuLieu, 'mat_khau_admin');
         const duongDanTieuDe = ref(coSoDuLieu, 'tieu_de_trang');
+        const duongDanChoPhepSua = ref(coSoDuLieu, 'cho_phep_sua');
 
         let duLieuGoc = [];
-        let cacCot = [];
+        let cacCotHienThi = [];
+        let cotAn = "";
         let matKhauHienTai = "admin";
         let trangThaiDangNhap = false;
+        let choPhepSuaHienTai = false;
+        let duLieuHangDangSua = null;
         
         // Tiêu đề mặc định nếu trên Firebase chưa có
         let duLieuTieuDe = {
@@ -165,6 +229,8 @@
         const tieuDe1 = document.getElementById('tieuDe1');
         const tieuDe2 = document.getElementById('tieuDe2');
         const tieuDe3 = document.getElementById('tieuDe3');
+        const nutMoTatSua = document.getElementById('nutMoTatSua');
+        const nutSuaDuLieu = document.getElementById('nutSuaDuLieu');
 
         // Lắng nghe dữ liệu mật khẩu
         onValue(duongDanMatKhau, (snapshot) => {
@@ -172,6 +238,28 @@
                 matKhauHienTai = snapshot.val();
             }
         });
+
+        // Lắng nghe dữ liệu quyền sửa
+        onValue(duongDanChoPhepSua, (snapshot) => {
+            if (snapshot.exists()) {
+                choPhepSuaHienTai = snapshot.val();
+            } else {
+                choPhepSuaHienTai = false;
+            }
+            capNhatGiaoDienQuyenSua();
+        });
+
+        function capNhatGiaoDienQuyenSua() {
+            if (choPhepSuaHienTai) {
+                nutMoTatSua.textContent = "Khóa quyền sửa";
+                nutMoTatSua.className = "nut-canh-bao";
+                nutSuaDuLieu.style.display = "inline-block";
+            } else {
+                nutMoTatSua.textContent = "Mở quyền sửa";
+                nutMoTatSua.className = "nut-thanh-cong";
+                nutSuaDuLieu.style.display = "none";
+            }
+        }
 
         // Lắng nghe dữ liệu tiêu đề
         onValue(duongDanTieuDe, (snapshot) => {
@@ -200,6 +288,13 @@
                 khungQuanLy.style.display = "none";
                 nutDangNhap.textContent = "Đăng nhập quản lý";
             }
+        });
+
+        // Đóng mở quyền sửa cho Admin
+        nutMoTatSua.addEventListener('click', () => {
+            set(duongDanChoPhepSua, !choPhepSuaHienTai)
+                .then(() => alert(!choPhepSuaHienTai ? "Đã mở chức năng sửa dữ liệu cho học sinh!" : "Đã khóa chức năng sửa dữ liệu!"))
+                .catch((loi) => console.error(loi));
         });
 
         // Xử lý đổi tiêu đề
@@ -296,14 +391,26 @@
             const duLieuNhan = snapshot.val();
             
             if (duLieuNhan && duLieuNhan.danhSach && duLieuNhan.danhSach.length > 0) {
-                duLieuGoc = duLieuNhan.danhSach.filter(hang => hang !== null); 
+                duLieuGoc = [];
+                // Giu nguyen vi tri index de cap nhat len Firebase chinh xac
+                duLieuNhan.danhSach.forEach((hang, viTri) => {
+                    if (hang !== null) {
+                        hang._viTriGoc = viTri;
+                        duLieuGoc.push(hang);
+                    }
+                });
                 
                 if (duLieuGoc.length > 0) {
-                    const tatCaCot = duLieuNhan.thuTu || Object.keys(duLieuGoc[0]);
+                    const tatCaCot = duLieuNhan.thuTu || Object.keys(duLieuGoc[0]).filter(k => k !== "_viTriGoc" && k !== "_daSua");
                     
-                    cacCot = tatCaCot.filter(cot => {
-                        return duLieuGoc.some(hang => hang[cot] !== undefined && hang[cot] !== null && String(hang[cot]).trim() !== "");
-                    });
+                    if (tatCaCot.length > 0) {
+                        cotAn = tatCaCot[0]; // Cot 1 la cot an (CCCD)
+                        
+                        // Cac cot tu cot 2 tro di de hien thi
+                        cacCotHienThi = tatCaCot.slice(1).filter(cot => {
+                            return duLieuGoc.some(hang => hang[cot] !== undefined && hang[cot] !== null && String(hang[cot]).trim() !== "");
+                        });
+                    }
 
                     taoKhungBang();
                     capNhatThanBang([], true);
@@ -316,12 +423,12 @@
         function taoKhungBang() {
             let html = '<table><thead><tr>';
             
-            cacCot.forEach(cot => {
+            cacCotHienThi.forEach(cot => {
                 html += `<th>${cot}</th>`;
             });
             html += '</tr><tr>';
             
-            cacCot.forEach(cot => {
+            cacCotHienThi.forEach(cot => {
                 html += `<th><input type="text" class="oLoc" data-cot="${cot}" placeholder="Lọc..."></th>`;
             });
             html += '</tr></thead><tbody id="thanBang"></tbody></table>';
@@ -339,20 +446,22 @@
             if (!thanBang) return;
 
             if (chuaCoDieuKien) {
-                thanBang.innerHTML = `<tr><td colspan="${cacCot.length}" style="text-align:center; color: #555; font-style: italic;">Vui lòng nhập thông tin vào ít nhất 1 ô lọc để xem dữ liệu.</td></tr>`;
+                thanBang.innerHTML = `<tr><td colspan="${cacCotHienThi.length}" style="text-align:center; color: #555; font-style: italic;">Vui lòng nhập thông tin vào ít nhất 1 ô lọc để xem dữ liệu.</td></tr>`;
                 return;
             }
 
             if (!duLieuHienThi || duLieuHienThi.length === 0) {
-                thanBang.innerHTML = `<tr><td colspan="${cacCot.length}" style="text-align:center; color: red;">Không tìm thấy dữ liệu phù hợp.</td></tr>`;
+                thanBang.innerHTML = `<tr><td colspan="${cacCotHienThi.length}" style="text-align:center; color: red;">Không tìm thấy dữ liệu phù hợp.</td></tr>`;
                 return;
             }
 
             let html = '';
             duLieuHienThi.forEach(hang => {
                 html += '<tr>';
-                cacCot.forEach(cot => {
-                    html += `<td>${hang[cot] !== undefined ? hang[cot] : ''}</td>`;
+                cacCotHienThi.forEach(cot => {
+                    const giaTri = hang[cot] !== undefined ? hang[cot] : '';
+                    const lopHighlight = (hang._daSua && hang._daSua.includes(cot)) ? ' class="o-da-sua"' : '';
+                    html += `<td${lopHighlight}>${giaTri}</td>`;
                 });
                 html += '</tr>';
             });
@@ -389,6 +498,94 @@
 
             capNhatThanBang(duLieuDaLoc, false);
         }
+
+        // --- XU LY CHUC NANG SUA DU LIEU ---
+        
+        nutSuaDuLieu.addEventListener('click', () => {
+            if (!choPhepSuaHienTai) {
+                alert("Chức năng sửa dữ liệu hiện đang bị khóa!");
+                return;
+            }
+
+            const cccd = prompt(`Vui lòng nhập thông tin đối chiếu (${cotAn}):`);
+            if (!cccd || cccd.trim() === "") return;
+
+            // Tim hang du lieu khop voi cotAn
+            const hangTimDuoc = duLieuGoc.find(hang => hang[cotAn] !== undefined && String(hang[cotAn]).trim() === cccd.trim());
+            
+            if (!hangTimDuoc) {
+                alert("Thông tin đối chiếu không chính xác hoặc không tồn tại trong hệ thống!");
+                return;
+            }
+
+            // Copy du lieu sang bien tam de sua
+            duLieuHangDangSua = JSON.parse(JSON.stringify(hangTimDuoc));
+
+            let htmlSua = '';
+            cacCotHienThi.forEach(cot => {
+                htmlSua += `
+                    <label style="font-weight: bold; display: block;">${cot}</label>
+                    <input type="text" id="inputSua_${cot}" class="nhap-sua" value="${duLieuHangDangSua[cot] !== undefined ? duLieuHangDangSua[cot] : ''}">
+                `;
+            });
+
+            document.getElementById('noiDungSua').innerHTML = htmlSua;
+            document.getElementById('lopPhuModal').style.display = 'block';
+            document.getElementById('khungSuaDuLieu').style.display = 'block';
+        });
+
+        // Tat Form sua
+        document.getElementById('nutDongSua').addEventListener('click', () => {
+            document.getElementById('lopPhuModal').style.display = 'none';
+            document.getElementById('khungSuaDuLieu').style.display = 'none';
+        });
+
+        // Luu lai sau khi sua
+        document.getElementById('nutLuuSua').addEventListener('click', () => {
+            if (!duLieuHangDangSua) return;
+
+            let coThayDoi = false;
+            if (!duLieuHangDangSua._daSua) {
+                duLieuHangDangSua._daSua = [];
+            }
+
+            // So sanh tung o de tim ra o bi thay doi
+            cacCotHienThi.forEach(cot => {
+                const giaTriMoi = document.getElementById(`inputSua_${cot}`).value;
+                const giaTriCu = duLieuHangDangSua[cot] !== undefined ? String(duLieuHangDangSua[cot]) : "";
+                
+                if (giaTriMoi !== giaTriCu) {
+                    duLieuHangDangSua[cot] = giaTriMoi;
+                    if (!duLieuHangDangSua._daSua.includes(cot)) {
+                        duLieuHangDangSua._daSua.push(cot);
+                    }
+                    coThayDoi = true;
+                }
+            });
+
+            if (coThayDoi) {
+                const viTriGoc = duLieuHangDangSua._viTriGoc;
+                const banSaoDayLen = { ...duLieuHangDangSua };
+                delete banSaoDayLen._viTriGoc; // Xoa bien tam truoc khi day len Firebase
+                
+                const duongDanHang = ref(coSoDuLieu, `danh_sach_hoc_sinh/danhSach/${viTriGoc}`);
+                set(duongDanHang, banSaoDayLen)
+                    .then(() => {
+                        alert("Đã cập nhật thông tin thành công!");
+                        document.getElementById('lopPhuModal').style.display = 'none';
+                        document.getElementById('khungSuaDuLieu').style.display = 'none';
+                    })
+                    .catch((loi) => {
+                        alert("Lỗi khi lưu dữ liệu lên hệ thống!");
+                        console.error(loi);
+                    });
+            } else {
+                alert("Không có thông tin nào được thay đổi.");
+                document.getElementById('lopPhuModal').style.display = 'none';
+                document.getElementById('khungSuaDuLieu').style.display = 'none';
+            }
+        });
+
     </script>
 </body>
 </html>
