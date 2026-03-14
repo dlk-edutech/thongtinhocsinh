@@ -202,7 +202,7 @@
             <button id="nutTaiLen">Nạp dữ liệu Excel</button>
             <button id="nutTaiDuLieu" class="nut-thanh-cong">Tải dữ liệu mới</button>
             <button id="nutDoiTieuDe" class="nut-phu">Đổi tiêu đề & thông báo</button>
-            <button id="nutDoiMaSo" class="nut-phu">Đổi mã số trường</button>
+            <button id="nutDoiMaSo" class="nut-phu" style="display: none;">Đổi mã số trường</button>
             <button id="nutMoTatSua" class="nut-phu">Mở quyền sửa</button>
             <span id="trangThai" style="margin-left: 10px; color: green; font-weight: bold;"></span>
         </div>
@@ -214,7 +214,7 @@
     
     <div id="khungNhapBaoMat" class="khung-modal" style="min-width: 300px;">
         <h3 id="tieuDeBaoMat" style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Đăng nhập hệ thống</h3>
-        <p style="font-size: 14px; color: #555; margin-bottom: 10px;">Mã trường hoặc Mật khẩu Quản lý Root</p>
+        <p id="moTaDangNhap" style="font-size: 14px; color: #555; margin-bottom: 10px;">Nhập thông tin xác thực</p>
         <div style="position: relative; width: 100%; margin-bottom: 15px; margin-top: 10px;">
             <input type="password" id="oNhapBaoMat" class="nhap-sua" style="margin-bottom: 0; padding-right: 60px;">
             <button id="nutAnHienBaoMat" type="button" class="nut-phu" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); margin: 0; padding: 4px 8px; font-size: 12px;">Hiện</button>
@@ -294,19 +294,20 @@
         const ungDung = initializeApp(firebaseConfig);
         const coSoDuLieu = getDatabase(ungDung);
 
-        let duongDanDuLieu, duongDanTieuDe, duongDanChoPhepSua, duongDanMatKhau;
+        let duongDanDuLieu, duongDanTieuDe, duongDanChoPhepSua, duongDanMatKhauRoot;
         
         let duLieuGoc = [];
         let cacCotHienThi = [];
         let cotAn = "";
         let trangThaiDangNhap = false;
         let choPhepSuaHienTai = false;
-        let matKhauHienTai = "admin";
+        let matKhauHienTai = "admin"; // Pass Root
         let duLieuHangDangSua = null;
-        let maTruongHienTai = "";
+        let maTruongHienTai = ""; // La tienTo cua truong
         let laRoot = false;
         let truongDangSua = null;
         let tienToHienTai = "";
+        let maSoHienTai = "";
         
         let duLieuTieuDe = {
             dong1: "SỞ GD & ĐT ĐẮK LẮK",
@@ -328,7 +329,7 @@
         const tieuDe3 = document.getElementById('tieuDe3');
         const nutMoTatSua = document.getElementById('nutMoTatSua');
 
-        function nhapBaoMat() {
+        function nhapBaoMat(loai) {
             return new Promise((giaiQuyet) => {
                 const khungBaoMat = document.getElementById('khungNhapBaoMat');
                 const lopPhu = document.getElementById('lopPhuModal');
@@ -336,6 +337,15 @@
                 const nutAnHienBaoMat = document.getElementById('nutAnHienBaoMat');
                 const nutXacNhanBaoMat = document.getElementById('nutXacNhanBaoMat');
                 const nutHuyBaoMat = document.getElementById('nutHuyBaoMat');
+                const moTaDangNhap = document.getElementById('moTaDangNhap');
+
+                if (loai === "root") {
+                    moTaDangNhap.textContent = "Mật khẩu quản lý Root hoặc Mã đăng nhập trường (VD: abc1234)";
+                } else if (loai === "school") {
+                    moTaDangNhap.textContent = `Mã đăng nhập quản lý trường (Ví dụ: ${tienToHienTai}xxxx)`;
+                } else {
+                    moTaDangNhap.textContent = "Nhập thông tin xác thực";
+                }
 
                 oNhapBaoMat.value = '';
                 oNhapBaoMat.type = 'password';
@@ -379,35 +389,35 @@
         const thamSoURL = new URLSearchParams(window.location.search);
         maTruongHienTai = thamSoURL.get('truong');
 
-        if (!maTruongHienTai) {
-            laRoot = true;
-            duongDanDuLieu = ref(coSoDuLieu, 'danh_sach_hoc_sinh');
-            duongDanTieuDe = ref(coSoDuLieu, 'tieu_de_trang');
-            duongDanChoPhepSua = ref(coSoDuLieu, 'cho_phep_sua');
-            duongDanMatKhau = ref(coSoDuLieu, 'mat_khau_admin'); // Tai khoan goc hien co tren Firebase
-        } else {
-            laRoot = false;
-            duongDanDuLieu = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/danh_sach_hoc_sinh');
-            duongDanTieuDe = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/tieu_de_trang');
-            duongDanChoPhepSua = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/cho_phep_sua');
-            duongDanMatKhau = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/mat_khau_admin');
-            
-            // Lay tien to cua truong hien tai
-            onValue(ref(coSoDuLieu, 'danh_sach_truong/' + maTruongHienTai), (snapshot) => {
-                if (snapshot.exists()) {
-                    tienToHienTai = snapshot.val().tienTo || "";
-                }
-            });
-        }
-
-        // Lay mat khau hien tai (Cho ca Root hoac Truong con tuy vao URL)
-        onValue(duongDanMatKhau, (snapshot) => {
+        duongDanMatKhauRoot = ref(coSoDuLieu, 'mat_khau_admin'); // Root pass luon nam o day
+        onValue(duongDanMatKhauRoot, (snapshot) => {
             if (snapshot.exists()) {
                 matKhauHienTai = snapshot.val();
             }
         });
 
-        // Tu dong dang nhap neu co session
+        if (!maTruongHienTai) {
+            laRoot = true;
+            duongDanDuLieu = ref(coSoDuLieu, 'danh_sach_hoc_sinh');
+            duongDanTieuDe = ref(coSoDuLieu, 'tieu_de_trang');
+            duongDanChoPhepSua = ref(coSoDuLieu, 'cho_phep_sua');
+            nutDoiMaSo.style.display = "none";
+        } else {
+            laRoot = false;
+            duongDanDuLieu = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/danh_sach_hoc_sinh');
+            duongDanTieuDe = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/tieu_de_trang');
+            duongDanChoPhepSua = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/cho_phep_sua');
+            nutDoiMaSo.style.display = "inline-block";
+            
+            // Lay thong tin maSo cua truong de lam mat khau
+            onValue(ref(coSoDuLieu, 'danh_sach_truong/' + maTruongHienTai), (snapshot) => {
+                if (snapshot.exists()) {
+                    tienToHienTai = snapshot.val().tienTo || "";
+                    maSoHienTai = snapshot.val().maSo || "";
+                }
+            });
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             const daDangNhap = sessionStorage.getItem('dangNhapTruong');
             if (daDangNhap === 'root' && laRoot) {
@@ -493,11 +503,11 @@
 
         nutDangNhap.addEventListener('click', async () => {
             if (!trangThaiDangNhap) {
-                const nhapInfo = await nhapBaoMat();
+                const nhapInfo = await nhapBaoMat(laRoot ? "root" : "school");
                 if (nhapInfo === null || nhapInfo.trim() === "") return;
                 
                 if (laRoot) {
-                    // Kiem tra pass cua tai khoan ban dau (Root)
+                    // 1. Kiem tra xem co phai mat khau Root khong
                     if (nhapInfo === matKhauHienTai) {
                         sessionStorage.setItem('dangNhapTruong', 'root');
                         trangThaiDangNhap = true;
@@ -507,23 +517,35 @@
                         return;
                     }
 
-                    // Neu khong phai pass Root, kiem tra xem co phai la dang nhap vao link truong con khong
-                    const truongRef = ref(coSoDuLieu, 'danh_sach_truong/' + nhapInfo);
-                    const snapshot = await get(truongRef);
+                    // 2. Neu nhap abcxxxx o link Root -> Tim truong de vao
+                    const snapshot = await get(ref(coSoDuLieu, 'danh_sach_truong'));
+                    let foundTienTo = null;
+                    
                     if (snapshot.exists()) {
-                        sessionStorage.setItem('dangNhapTruong', nhapInfo);
-                        window.location.href = "?truong=" + nhapInfo;
-                    } else {
-                        alert("Mật khẩu quản lý Root hoặc mã trường không chính xác!");
+                        snapshot.forEach(child => {
+                            const dl = child.val();
+                            if ((dl.tienTo + dl.maSo) === nhapInfo) {
+                                foundTienTo = dl.tienTo;
+                            }
+                        });
                     }
+
+                    if (foundTienTo) {
+                        sessionStorage.setItem('dangNhapTruong', foundTienTo);
+                        window.location.href = "?truong=" + foundTienTo;
+                    } else {
+                        alert("Mật khẩu Root hoặc mã đăng nhập trường không chính xác!");
+                    }
+
                 } else {
-                    // Dang o link truong con, kiem tra mat khau truong con (chi de quan ly, khong phai Root)
-                    if (nhapInfo === matKhauHienTai) {
+                    // Dang o link truong con (Vi du ?truong=abc), mk la abcxxxx
+                    const matKhauTruongNay = tienToHienTai + maSoHienTai;
+                    if (nhapInfo === matKhauTruongNay) {
                         trangThaiDangNhap = true;
                         sessionStorage.setItem('dangNhapTruong', maTruongHienTai);
                         hienThiGiaoDienQuanLy();
                     } else {
-                        alert("Mã trường hoặc mật khẩu không chính xác!");
+                        alert("Mã đăng nhập không chính xác! (Mã phải bao gồm tiền tố và mã số)");
                     }
                 }
             } else {
@@ -542,17 +564,18 @@
                     return;
                 }
                 
-                let html = '<table><thead><tr><th>Mã Trường</th><th>Link Truy Cập</th><th style="text-align:center;">Thao tác</th></tr></thead><tbody>';
+                let html = '<table><thead><tr><th>Mã Trường (Tiền tố)</th><th>Mã Số</th><th>Link Truy Cập</th><th style="text-align:center;">Thao tác</th></tr></thead><tbody>';
                 snapshot.forEach((truongSnap) => {
                     const dl = truongSnap.val();
                     const tienToHienThi = dl.tienTo || "";
                     const maSoHienThi = dl.maSo || "";
                     html += `<tr>
-                        <td><strong>${dl.maTruong}</strong></td>
+                        <td><strong>${tienToHienThi}</strong></td>
+                        <td>${maSoHienThi}</td>
                         <td><a href="${dl.link}" target="_blank">${dl.link}</a></td>
                         <td style="text-align:center;">
-                            <button class="nut-sua-dong nut-sua-truong" data-ma="${dl.maTruong}" data-tiento="${tienToHienThi}" data-maso="${maSoHienThi}">Sửa</button>
-                            <button class="nut-sua-dong nut-xoa-truong" data-ma="${dl.maTruong}">Xóa</button>
+                            <button class="nut-sua-dong nut-sua-truong" data-ma="${dl.tienTo}" data-tiento="${tienToHienThi}" data-maso="${maSoHienThi}">Sửa</button>
+                            <button class="nut-sua-dong nut-xoa-truong" data-ma="${dl.tienTo}">Xóa</button>
                         </td>
                     </tr>`;
                 });
@@ -561,28 +584,33 @@
             });
         }
 
-        document.getElementById('nutTaoTruongMoi').addEventListener('click', () => {
+        document.getElementById('nutTaoTruongMoi').addEventListener('click', async () => {
             const tienTo = document.getElementById('oTienToTruong').value.trim();
             const maSo = document.getElementById('oMaSoTruong').value.trim();
 
             if(!tienTo || !maSo) {
-                alert("Vui lòng nhập đầy đủ tiền tố và mã số!");
+                alert("Vui lòng nhập đầy đủ tên trường (tiền tố) và mã số!");
                 return;
             }
 
-            const maTruongTao = tienTo + maSo;
-            const linkTruong = window.location.origin + window.location.pathname + "?truong=" + maTruongTao;
-            
-            const truongRef = ref(coSoDuLieu, 'danh_sach_truong/' + maTruongTao);
+            // Kiem tra tien to da ton tai chua
+            const checkSnap = await get(ref(coSoDuLieu, 'danh_sach_truong/' + tienTo));
+            if (checkSnap.exists()) {
+                alert("Tên trường (tiền tố) này đã tồn tại!");
+                return;
+            }
+
+            const linkTruong = window.location.origin + window.location.pathname + "?truong=" + tienTo;
+            const truongRef = ref(coSoDuLieu, 'danh_sach_truong/' + tienTo);
 
             set(truongRef, { 
-                maTruong: maTruongTao,
+                maTruong: tienTo, 
                 tienTo: tienTo,
                 maSo: maSo,
                 link: linkTruong, 
                 ngayTao: new Date().toISOString() 
             }).then(() => {
-                alert("Đã tạo trường thành công!\nMã đăng nhập của trường là: " + maTruongTao);
+                alert(`Đã tạo trường thành công!\n- Link truy cập: ${linkTruong}\n- Mã đăng nhập quản lý: ${tienTo}${maSo}`);
                 document.getElementById('oTienToTruong').value = "";
                 document.getElementById('oMaSoTruong').value = "";
             }).catch(loi => console.error(loi));
@@ -604,7 +632,7 @@
             }
             
             if (suKien.target.classList.contains('nut-xoa-truong')) {
-                const ma = suKien.target.getAttribute('data-ma');
+                const ma = suKien.target.getAttribute('data-ma'); // ma o day chinh la tienTo
                 if(confirm("Bạn có chắc chắn muốn xóa trường này và TOÀN BỘ dữ liệu của trường? Hành động này không thể hoàn tác!")) {
                     remove(ref(coSoDuLieu, 'danh_sach_truong/' + ma));
                     remove(ref(coSoDuLieu, 'schools/' + ma));
@@ -624,32 +652,34 @@
                 return;
             }
             
-            const maTruongMoi = tienToMoi + maSoMoi;
-            const linkTruongMoi = window.location.origin + window.location.pathname + "?truong=" + maTruongMoi;
+            const linkTruongMoi = window.location.origin + window.location.pathname + "?truong=" + tienToMoi;
             
-            if(maTruongMoi !== truongDangSua.maTruong) {
+            if(tienToMoi !== truongDangSua.tienTo) {
                 // Kiem tra ma moi ton tai chua
-                const kiemTraTruongMoi = await get(ref(coSoDuLieu, 'danh_sach_truong/' + maTruongMoi));
+                const kiemTraTruongMoi = await get(ref(coSoDuLieu, 'danh_sach_truong/' + tienToMoi));
                 if (kiemTraTruongMoi.exists()) {
-                    alert("Mã trường này đã tồn tại, vui lòng chọn mã khác!");
+                    alert("Tên trường (tiền tố) này đã tồn tại, vui lòng chọn tên khác!");
                     return;
                 }
 
                 // Chuyen du lieu
-                const duLieuCuSnap = await get(ref(coSoDuLieu, 'schools/' + truongDangSua.maTruong));
+                const duLieuCuSnap = await get(ref(coSoDuLieu, 'schools/' + truongDangSua.tienTo));
                 if(duLieuCuSnap.exists()) {
-                    await set(ref(coSoDuLieu, 'schools/' + maTruongMoi), duLieuCuSnap.val());
-                    await remove(ref(coSoDuLieu, 'schools/' + truongDangSua.maTruong));
+                    await set(ref(coSoDuLieu, 'schools/' + tienToMoi), duLieuCuSnap.val());
+                    await remove(ref(coSoDuLieu, 'schools/' + truongDangSua.tienTo));
                 }
                 
-                await remove(ref(coSoDuLieu, 'danh_sach_truong/' + truongDangSua.maTruong));
-                await set(ref(coSoDuLieu, 'danh_sach_truong/' + maTruongMoi), {
-                    maTruong: maTruongMoi,
+                await remove(ref(coSoDuLieu, 'danh_sach_truong/' + truongDangSua.tienTo));
+                await set(ref(coSoDuLieu, 'danh_sach_truong/' + tienToMoi), {
+                    maTruong: tienToMoi,
                     tienTo: tienToMoi,
                     maSo: maSoMoi,
                     link: linkTruongMoi,
                     ngayTao: new Date().toISOString()
                 });
+            } else {
+                // Chi doi ma so
+                await set(ref(coSoDuLieu, 'danh_sach_truong/' + truongDangSua.tienTo + '/maSo'), maSoMoi);
             }
             
             alert("Đã cập nhật thông tin trường thành công!");
@@ -702,7 +732,7 @@
                 });
         });
 
-        // Tinh nang doi ma so truong (danh cho Admin Truong - thay the doi mat khau)
+        // Tinh nang doi ma so truong (Chi ranh cho Admin Truong - vi Root co bang quan ly rieng)
         nutDoiMaSo.addEventListener('click', () => {
             document.getElementById('hienThiTienTo').textContent = tienToHienTai;
             document.getElementById('oNhapMaSoMoi').value = "";
@@ -722,42 +752,20 @@
                 return;
             }
             
-            const maTruongMoi = tienToHienTai + maSoMoi;
-            
-            if (maTruongMoi === maTruongHienTai) {
+            if (maSoMoi === maSoHienTai) {
                 alert("Mã số mới phải khác mã số hiện tại!");
                 return;
             }
 
-            // Kiem tra ton tai
-            const kiemTraTruongMoi = await get(ref(coSoDuLieu, 'danh_sach_truong/' + maTruongMoi));
-            if (kiemTraTruongMoi.exists()) {
-                alert("Mã trường này đã tồn tại, vui lòng chọn mã số khác!");
-                return;
-            }
-
             try {
-                // Copy data
-                const duLieuCuSnap = await get(ref(coSoDuLieu, 'schools/' + maTruongHienTai));
-                if(duLieuCuSnap.exists()) {
-                    await set(ref(coSoDuLieu, 'schools/' + maTruongMoi), duLieuCuSnap.val());
-                    await remove(ref(coSoDuLieu, 'schools/' + maTruongHienTai));
-                }
+                // Chi can cap nhat maSo moi vao db, khong can doi link hay data
+                await set(ref(coSoDuLieu, 'danh_sach_truong/' + maTruongHienTai + '/maSo'), maSoMoi);
                 
-                // Cap nhat list truong
-                const oldInfoSnap = await get(ref(coSoDuLieu, 'danh_sach_truong/' + maTruongHienTai));
-                if (oldInfoSnap.exists()) {
-                    const oldInfo = oldInfoSnap.val();
-                    oldInfo.maSo = maSoMoi;
-                    oldInfo.maTruong = maTruongMoi;
-                    oldInfo.link = window.location.origin + window.location.pathname + "?truong=" + maTruongMoi;
-                    await set(ref(coSoDuLieu, 'danh_sach_truong/' + maTruongMoi), oldInfo);
-                    await remove(ref(coSoDuLieu, 'danh_sach_truong/' + maTruongHienTai));
-                }
-
-                alert("Đổi mã số thành công! Đang chuyển hướng...");
-                sessionStorage.setItem('dangNhapTruong', maTruongMoi);
-                window.location.href = "?truong=" + maTruongMoi;
+                alert("Đổi mã số thành công! Mã đăng nhập mới của bạn là: " + tienToHienTai + maSoMoi);
+                maSoHienTai = maSoMoi; // cap nhat bien moi
+                
+                document.getElementById('lopPhuModal').style.display = 'none';
+                document.getElementById('khungSuaMaSo').style.display = 'none';
             } catch (loi) {
                 console.error(loi);
                 alert("Có lỗi xảy ra khi đổi mã số!");
@@ -947,7 +955,7 @@
                 
                 if (!hangThaoTac) return;
 
-                const thongTinBaoMat = await nhapBaoMat();
+                const thongTinBaoMat = await nhapBaoMat("xacthuc");
                 if (!thongTinBaoMat || thongTinBaoMat.trim() === "") return;
 
                 if (String(hangThaoTac[cotAn]).trim() !== thongTinBaoMat.trim()) {
