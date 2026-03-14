@@ -32,6 +32,8 @@
         .phan-tieu-de h3 {
             margin: 10px 0 0 0;
             color: #007bff;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
         .khung-dieukhien {
             background-color: #fff;
@@ -114,7 +116,6 @@
             color: #555;
             border-top: 1px solid #ddd;
         }
-        /* CSS cho chuc nang sua va modal */
         .o-da-sua {
             background-color: #fff3cd !important;
             color: #856404;
@@ -150,6 +151,23 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+        textarea.nhap-sua {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .o-nhap-root {
+            padding: 8px;
+            margin-right: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .nut-xoa-truong {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+        .nut-xoa-truong:hover {
+            background-color: #c82333 !important;
+        }
     </style>
 </head>
 <body>
@@ -164,12 +182,27 @@
         <h3 id="tieuDe3">Hệ Thống Tìm Kiếm Thông Tin Học Sinh</h3>
     </div>
 
+    <div id="khungRootAdmin" style="display: none;">
+        <h2 style="color: #d9534f; border-bottom: 2px solid #ddd; padding-bottom: 10px;">Quản Trị Hệ Thống (Root Admin)</h2>
+        <div class="khung-dieukhien">
+            <h3>Tạo tài khoản trường mới</h3>
+            <input type="text" id="oTienToTruong" class="o-nhap-root" placeholder="Tên trường (vd: abc)">
+            <input type="text" id="oMaSoTruong" class="o-nhap-root" placeholder="Mã số (vd: 1234)">
+            <input type="text" id="oMatKhauTruongMoi" class="o-nhap-root" placeholder="Mật khẩu Admin trường">
+            <button id="nutTaoTruongMoi" class="nut-thanh-cong">Tạo Mới</button>
+        </div>
+        <div class="khung-dieukhien">
+            <h3>Danh sách các trường đang hoạt động</h3>
+            <div id="bangDanhSachTruong"></div>
+        </div>
+    </div>
+
     <div class="noi-dung-chinh">
         <div id="khungQuanLy" class="khung-dieukhien" style="display: none;">
             <input type="file" id="fileNhap" accept=".xlsx, .xls">
             <button id="nutTaiLen">Nạp dữ liệu Excel</button>
             <button id="nutTaiDuLieu" class="nut-thanh-cong">Tải dữ liệu mới</button>
-            <button id="nutDoiTieuDe" class="nut-phu">Đổi tiêu đề</button>
+            <button id="nutDoiTieuDe" class="nut-phu">Đổi tiêu đề & thông báo</button>
             <button id="nutDoiMatKhau" class="nut-phu">Đổi mật khẩu</button>
             <button id="nutMoTatSua" class="nut-phu">Mở quyền sửa</button>
             <span id="trangThai" style="margin-left: 10px; color: green; font-weight: bold;"></span>
@@ -192,6 +225,34 @@
         </div>
     </div>
 
+    <div id="khungSuaTieuDe" class="khung-modal" style="min-width: 400px;">
+        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Sửa tiêu đề & Thông báo</h3>
+        <label style="font-weight: bold;">Tiêu đề dòng 1:</label>
+        <input type="text" id="oNhapDong1" class="nhap-sua">
+        <label style="font-weight: bold;">Tiêu đề dòng 2:</label>
+        <input type="text" id="oNhapDong2" class="nhap-sua">
+        <label style="font-weight: bold;">Thông báo (Dòng 3 - Hỗ trợ nhiều dòng):</label>
+        <textarea id="oNhapDong3" class="nhap-sua"></textarea>
+        <div style="text-align: right; margin-top: 15px;">
+            <button id="nutLuuTieuDe" class="nut-thanh-cong">Lưu thay đổi</button>
+            <button id="nutDongSuaTieuDe" class="nut-phu">Hủy</button>
+        </div>
+    </div>
+
+    <div id="khungSuaTruongInfo" class="khung-modal" style="min-width: 350px;">
+        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Sửa thông tin trường</h3>
+        <label style="font-weight: bold;">Tên trường (tiền tố):</label>
+        <input type="text" id="oSuaTienTo" class="nhap-sua">
+        <label style="font-weight: bold;">Mã số:</label>
+        <input type="text" id="oSuaMaSo" class="nhap-sua">
+        <label style="font-weight: bold;">Mật khẩu mới (bỏ trống nếu không đổi):</label>
+        <input type="text" id="oSuaMatKhauTruong" class="nhap-sua" placeholder="Nhập mật khẩu mới...">
+        <div style="text-align: right; margin-top: 15px;">
+            <button id="nutLuuSuaTruong" class="nut-thanh-cong">Lưu thay đổi</button>
+            <button id="nutDongSuaTruong" class="nut-phu">Hủy</button>
+        </div>
+    </div>
+
     <div id="khungSuaDuLieu" class="khung-modal">
         <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Sửa thông tin</h3>
         <div id="noiDungSua"></div>
@@ -207,9 +268,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, get, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-        // Cấu hình Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyASafVpSGkoJbAY9xe0Q09gUmtUL2J7NI8",
             authDomain: "stdin4.firebaseapp.com",
@@ -222,11 +282,9 @@
 
         const ungDung = initializeApp(firebaseConfig);
         const coSoDuLieu = getDatabase(ungDung);
-        const duongDanDuLieu = ref(coSoDuLieu, 'danh_sach_hoc_sinh');
-        const duongDanMatKhau = ref(coSoDuLieu, 'mat_khau_admin');
-        const duongDanTieuDe = ref(coSoDuLieu, 'tieu_de_trang');
-        const duongDanChoPhepSua = ref(coSoDuLieu, 'cho_phep_sua');
 
+        let duongDanDuLieu, duongDanMatKhau, duongDanTieuDe, duongDanChoPhepSua;
+        
         let duLieuGoc = [];
         let cacCotHienThi = [];
         let cotAn = "";
@@ -234,6 +292,9 @@
         let trangThaiDangNhap = false;
         let choPhepSuaHienTai = false;
         let duLieuHangDangSua = null;
+        let maTruongHienTai = "";
+        let laRoot = false;
+        let truongDangSua = null;
         
         let duLieuTieuDe = {
             dong1: "SỞ GD & ĐT ĐẮK LẮK",
@@ -255,7 +316,6 @@
         const tieuDe3 = document.getElementById('tieuDe3');
         const nutMoTatSua = document.getElementById('nutMoTatSua');
 
-        // Ham mo popup nhap mat khau / CCCD co the an hien
         function nhapBaoMat(tieuDe) {
             return new Promise((giaiQuyet) => {
                 const khungBaoMat = document.getElementById('khungNhapBaoMat');
@@ -281,6 +341,7 @@
                     nutXacNhanBaoMat.onclick = null;
                     nutHuyBaoMat.onclick = null;
                     nutAnHienBaoMat.onclick = null;
+                    oNhapBaoMat.onkeypress = null;
                     giaiQuyet(giaTri);
                 };
 
@@ -297,13 +358,29 @@
                     }
                 };
                 
-                // Nhan Enter de xac nhan
                 oNhapBaoMat.onkeypress = (suKien) => {
                     if (suKien.key === 'Enter') {
                         dongKhungBaoMat(oNhapBaoMat.value);
                     }
                 };
             });
+        }
+
+        const thamSoURL = new URLSearchParams(window.location.search);
+        maTruongHienTai = thamSoURL.get('truong');
+
+        if (!maTruongHienTai) {
+            laRoot = true;
+            duongDanDuLieu = ref(coSoDuLieu, 'danh_sach_hoc_sinh');
+            duongDanMatKhau = ref(coSoDuLieu, 'mat_khau_admin');
+            duongDanTieuDe = ref(coSoDuLieu, 'tieu_de_trang');
+            duongDanChoPhepSua = ref(coSoDuLieu, 'cho_phep_sua');
+        } else {
+            laRoot = false;
+            duongDanDuLieu = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/danh_sach_hoc_sinh');
+            duongDanMatKhau = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/mat_khau_admin');
+            duongDanTieuDe = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/tieu_de_trang');
+            duongDanChoPhepSua = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/cho_phep_sua');
         }
 
         onValue(duongDanMatKhau, (snapshot) => {
@@ -319,9 +396,45 @@
                 choPhepSuaHienTai = false;
             }
             capNhatGiaoDienQuyenSua();
-            
-            if (duLieuGoc.length > 0) {
-                locDuLieu();
+            if (duLieuGoc.length > 0) locDuLieu();
+        });
+
+        onValue(duongDanTieuDe, (snapshot) => {
+            if (snapshot.exists()) {
+                duLieuTieuDe = snapshot.val();
+                tieuDe1.textContent = duLieuTieuDe.dong1 || "";
+                tieuDe2.textContent = duLieuTieuDe.dong2 || "";
+                tieuDe3.textContent = duLieuTieuDe.dong3 || "";
+                document.title = (duLieuTieuDe.dong1 || "SỞ GDĐT") + " - " + (duLieuTieuDe.dong2 || "TRƯỜNG");
+            }
+        });
+
+        onValue(duongDanDuLieu, (snapshot) => {
+            const duLieuNhan = snapshot.val();
+            if (duLieuNhan && duLieuNhan.danhSach && duLieuNhan.danhSach.length > 0) {
+                duLieuGoc = [];
+                duLieuNhan.danhSach.forEach((hang, viTri) => {
+                    if (hang !== null) {
+                        hang._viTriGoc = viTri;
+                        duLieuGoc.push(hang);
+                    }
+                });
+                
+                if (duLieuGoc.length > 0) {
+                    const tatCaCot = duLieuNhan.thuTu || Object.keys(duLieuGoc[0]).filter(k => k !== "_viTriGoc" && k !== "_thongTinSua" && k !== "_daSua");
+                    
+                    if (tatCaCot.length > 0) {
+                        cotAn = tatCaCot[0];
+                        cacCotHienThi = tatCaCot.slice(1).filter(cot => {
+                            return duLieuGoc.some(hang => hang[cot] !== undefined && hang[cot] !== null && String(hang[cot]).trim() !== "");
+                        });
+                    }
+
+                    taoKhungBang();
+                    capNhatThanBang([], true);
+                }
+            } else {
+                khungBang.innerHTML = "<p>Chưa có dữ liệu trên hệ thống. Vui lòng nạp từ file Excel.</p>";
             }
         });
 
@@ -335,33 +448,162 @@
             }
         }
 
-        onValue(duongDanTieuDe, (snapshot) => {
-            if (snapshot.exists()) {
-                duLieuTieuDe = snapshot.val();
-                tieuDe1.textContent = duLieuTieuDe.dong1;
-                tieuDe2.textContent = duLieuTieuDe.dong2;
-                tieuDe3.textContent = duLieuTieuDe.dong3;
-                document.title = duLieuTieuDe.dong1 + " - " + duLieuTieuDe.dong2;
-            }
-        });
-
         nutDangNhap.addEventListener('click', async () => {
             if (!trangThaiDangNhap) {
-                const nhapMk = await nhapBaoMat("Vui lòng nhập mật khẩu quản lý:");
+                const nhapMk = await nhapBaoMat(laRoot ? "Vui lòng nhập mật khẩu quản lý (Root):" : "Vui lòng nhập mật khẩu quản lý trường:");
                 if (nhapMk === null) return;
                 
                 if (nhapMk === matKhauHienTai) {
                     trangThaiDangNhap = true;
                     khungQuanLy.style.display = "block";
                     nutDangNhap.textContent = "Đăng xuất";
+                    
+                    if (laRoot) {
+                        document.getElementById('khungRootAdmin').style.display = "block";
+                        hienThiDanhSachTruong();
+                    }
                 } else {
                     alert("Sai mật khẩu!");
                 }
             } else {
                 trangThaiDangNhap = false;
                 khungQuanLy.style.display = "none";
+                document.getElementById('khungRootAdmin').style.display = "none";
                 nutDangNhap.textContent = "Đăng nhập quản lý";
             }
+        });
+
+        function hienThiDanhSachTruong() {
+            const dsTruongRef = ref(coSoDuLieu, 'danh_sach_truong');
+            onValue(dsTruongRef, (snapshot) => {
+                const bangDs = document.getElementById('bangDanhSachTruong');
+                if(!snapshot.exists()) {
+                    bangDs.innerHTML = "<p>Chưa có trường nào được tạo.</p>";
+                    return;
+                }
+                
+                let html = '<table><thead><tr><th>Mã Trường</th><th>Link Truy Cập</th><th style="text-align:center;">Thao tác</th></tr></thead><tbody>';
+                snapshot.forEach((truongSnap) => {
+                    const dl = truongSnap.val();
+                    const tienToHienThi = dl.tienTo || "";
+                    const maSoHienThi = dl.maSo || "";
+                    html += `<tr>
+                        <td><strong>${dl.maTruong}</strong></td>
+                        <td><a href="${dl.link}" target="_blank">${dl.link}</a></td>
+                        <td style="text-align:center;">
+                            <button class="nut-sua-dong nut-sua-truong" data-ma="${dl.maTruong}" data-tiento="${tienToHienThi}" data-maso="${maSoHienThi}">Sửa</button>
+                            <button class="nut-sua-dong nut-xoa-truong" data-ma="${dl.maTruong}">Xóa</button>
+                        </td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                bangDs.innerHTML = html;
+            });
+        }
+
+        document.getElementById('nutTaoTruongMoi').addEventListener('click', () => {
+            const tienTo = document.getElementById('oTienToTruong').value.trim();
+            const maSo = document.getElementById('oMaSoTruong').value.trim();
+            const matKhau = document.getElementById('oMatKhauTruongMoi').value.trim();
+
+            if(!tienTo || !maSo || !matKhau) {
+                alert("Vui lòng nhập đầy đủ thông tin!");
+                return;
+            }
+
+            const maTruongTao = tienTo + maSo;
+            const linkTruong = window.location.origin + window.location.pathname + "?truong=" + maTruongTao;
+            
+            const truongRef = ref(coSoDuLieu, 'danh_sach_truong/' + maTruongTao);
+            const matKhauAdminTruongRef = ref(coSoDuLieu, 'schools/' + maTruongTao + '/mat_khau_admin');
+
+            set(truongRef, { 
+                maTruong: maTruongTao,
+                tienTo: tienTo,
+                maSo: maSo,
+                link: linkTruong, 
+                ngayTao: new Date().toISOString() 
+            }).then(() => {
+                set(matKhauAdminTruongRef, matKhau);
+                alert("Đã tạo trường thành công!\nLink: " + linkTruong);
+                document.getElementById('oTienToTruong').value = "";
+                document.getElementById('oMaSoTruong').value = "";
+                document.getElementById('oMatKhauTruongMoi').value = "";
+            }).catch(loi => console.error(loi));
+        });
+
+        document.getElementById('bangDanhSachTruong').addEventListener('click', (suKien) => {
+            if (suKien.target.classList.contains('nut-sua-truong')) {
+                truongDangSua = {
+                    maTruong: suKien.target.getAttribute('data-ma'),
+                    tienTo: suKien.target.getAttribute('data-tiento'),
+                    maSo: suKien.target.getAttribute('data-maso')
+                };
+                
+                document.getElementById('oSuaTienTo').value = truongDangSua.tienTo;
+                document.getElementById('oSuaMaSo').value = truongDangSua.maSo;
+                document.getElementById('oSuaMatKhauTruong').value = ""; 
+                
+                document.getElementById('lopPhuModal').style.display = 'block';
+                document.getElementById('khungSuaTruongInfo').style.display = 'block';
+            }
+            
+            if (suKien.target.classList.contains('nut-xoa-truong')) {
+                const ma = suKien.target.getAttribute('data-ma');
+                if(confirm("Bạn có chắc chắn muốn xóa trường này và TOÀN BỘ dữ liệu của trường? Hành động này không thể hoàn tác!")) {
+                    remove(ref(coSoDuLieu, 'danh_sach_truong/' + ma));
+                    remove(ref(coSoDuLieu, 'schools/' + ma));
+                    alert("Đã xóa trường thành công!");
+                }
+            }
+        });
+
+        document.getElementById('nutLuuSuaTruong').addEventListener('click', async () => {
+            if(!truongDangSua) return;
+            
+            const tienToMoi = document.getElementById('oSuaTienTo').value.trim();
+            const maSoMoi = document.getElementById('oSuaMaSo').value.trim();
+            const matKhauMoi = document.getElementById('oSuaMatKhauTruong').value.trim();
+            
+            if(!tienToMoi || !maSoMoi) {
+                alert("Tên trường và mã số không được để trống!");
+                return;
+            }
+            
+            const maTruongMoi = tienToMoi + maSoMoi;
+            const linkTruongMoi = window.location.origin + window.location.pathname + "?truong=" + maTruongMoi;
+            
+            if(maTruongMoi !== truongDangSua.maTruong) {
+                const duLieuCuSnap = await get(ref(coSoDuLieu, 'schools/' + truongDangSua.maTruong));
+                if(duLieuCuSnap.exists()) {
+                    await set(ref(coSoDuLieu, 'schools/' + maTruongMoi), duLieuCuSnap.val());
+                    await remove(ref(coSoDuLieu, 'schools/' + truongDangSua.maTruong));
+                }
+                
+                await remove(ref(coSoDuLieu, 'danh_sach_truong/' + truongDangSua.maTruong));
+                await set(ref(coSoDuLieu, 'danh_sach_truong/' + maTruongMoi), {
+                    maTruong: maTruongMoi,
+                    tienTo: tienToMoi,
+                    maSo: maSoMoi,
+                    link: linkTruongMoi,
+                    ngayTao: new Date().toISOString()
+                });
+            }
+            
+            if(matKhauMoi !== "") {
+                await set(ref(coSoDuLieu, 'schools/' + maTruongMoi + '/mat_khau_admin'), matKhauMoi);
+            }
+            
+            alert("Đã cập nhật thông tin trường thành công!");
+            document.getElementById('lopPhuModal').style.display = 'none';
+            document.getElementById('khungSuaTruongInfo').style.display = 'none';
+            truongDangSua = null;
+        });
+
+        document.getElementById('nutDongSuaTruong').addEventListener('click', () => {
+            document.getElementById('lopPhuModal').style.display = 'none';
+            document.getElementById('khungSuaTruongInfo').style.display = 'none';
+            truongDangSua = null;
         });
 
         nutMoTatSua.addEventListener('click', () => {
@@ -372,15 +614,30 @@
         });
 
         nutDoiTieuDe.addEventListener('click', () => {
-            const d1 = prompt("Nhập tiêu đề dòng 1:", duLieuTieuDe.dong1);
-            if (d1 === null) return;
-            const d2 = prompt("Nhập tiêu đề dòng 2:", duLieuTieuDe.dong2);
-            if (d2 === null) return;
-            const d3 = prompt("Nhập tiêu đề dòng 3:", duLieuTieuDe.dong3);
-            if (d3 === null) return;
+            document.getElementById('oNhapDong1').value = duLieuTieuDe.dong1 || "";
+            document.getElementById('oNhapDong2').value = duLieuTieuDe.dong2 || "";
+            document.getElementById('oNhapDong3').value = duLieuTieuDe.dong3 || "";
+            
+            document.getElementById('lopPhuModal').style.display = 'block';
+            document.getElementById('khungSuaTieuDe').style.display = 'block';
+        });
+
+        document.getElementById('nutDongSuaTieuDe').addEventListener('click', () => {
+            document.getElementById('lopPhuModal').style.display = 'none';
+            document.getElementById('khungSuaTieuDe').style.display = 'none';
+        });
+
+        document.getElementById('nutLuuTieuDe').addEventListener('click', () => {
+            const d1 = document.getElementById('oNhapDong1').value;
+            const d2 = document.getElementById('oNhapDong2').value;
+            const d3 = document.getElementById('oNhapDong3').value; 
 
             set(duongDanTieuDe, { dong1: d1, dong2: d2, dong3: d3 })
-                .then(() => alert("Cập nhật tiêu đề thành công!"))
+                .then(() => {
+                    alert("Cập nhật tiêu đề thành công!");
+                    document.getElementById('lopPhuModal').style.display = 'none';
+                    document.getElementById('khungSuaTieuDe').style.display = 'none';
+                })
                 .catch((loi) => {
                     alert("Lỗi khi lưu tiêu đề!");
                     console.error(loi);
@@ -487,37 +744,6 @@
             boDoc.readAsArrayBuffer(file);
         });
 
-        onValue(duongDanDuLieu, (snapshot) => {
-            const duLieuNhan = snapshot.val();
-            
-            if (duLieuNhan && duLieuNhan.danhSach && duLieuNhan.danhSach.length > 0) {
-                duLieuGoc = [];
-                duLieuNhan.danhSach.forEach((hang, viTri) => {
-                    if (hang !== null) {
-                        hang._viTriGoc = viTri;
-                        duLieuGoc.push(hang);
-                    }
-                });
-                
-                if (duLieuGoc.length > 0) {
-                    const tatCaCot = duLieuNhan.thuTu || Object.keys(duLieuGoc[0]).filter(k => k !== "_viTriGoc" && k !== "_thongTinSua" && k !== "_daSua");
-                    
-                    if (tatCaCot.length > 0) {
-                        cotAn = tatCaCot[0];
-                        
-                        cacCotHienThi = tatCaCot.slice(1).filter(cot => {
-                            return duLieuGoc.some(hang => hang[cot] !== undefined && hang[cot] !== null && String(hang[cot]).trim() !== "");
-                        });
-                    }
-
-                    taoKhungBang();
-                    capNhatThanBang([], true);
-                }
-            } else {
-                khungBang.innerHTML = "<p>Chưa có dữ liệu trên hệ thống. Vui lòng nạp từ file Excel.</p>";
-            }
-        });
-
         function taoKhungBang() {
             let html = '<table><thead><tr>';
             
@@ -613,7 +839,7 @@
         }
         
         khungBang.addEventListener('click', async (suKien) => {
-            if (suKien.target.classList.contains('nut-sua-dong')) {
+            if (suKien.target.classList.contains('nut-sua-dong') && !suKien.target.classList.contains('nut-sua-truong') && !suKien.target.classList.contains('nut-xoa-truong')) {
                 if (!choPhepSuaHienTai) {
                     alert("Chức năng sửa dữ liệu hiện đang bị khóa!");
                     return;
@@ -680,7 +906,9 @@
 
             if (coThayDoi) {
                 const viTriGoc = duLieuHangDangSua._viTriGoc;
-                const duongDanHangSua = ref(coSoDuLieu, `danh_sach_hoc_sinh/danhSach/${viTriGoc}/_thongTinSua`);
+                const duongDanHangSua = laRoot ? 
+                    ref(coSoDuLieu, `danh_sach_hoc_sinh/danhSach/${viTriGoc}/_thongTinSua`) :
+                    ref(coSoDuLieu, `schools/${maTruongHienTai}/danh_sach_hoc_sinh/danhSach/${viTriGoc}/_thongTinSua`);
                 
                 set(duongDanHangSua, duLieuHangDangSua._thongTinSua)
                     .then(() => {
