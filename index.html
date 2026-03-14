@@ -214,7 +214,7 @@
     
     <div id="khungNhapBaoMat" class="khung-modal" style="min-width: 300px;">
         <h3 id="tieuDeBaoMat" style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Đăng nhập hệ thống</h3>
-        <p style="font-size: 14px; color: #555; margin-bottom: 10px;">Mã trường kết hợp tiền tố và mã số (VD: abc1234)</p>
+        <p style="font-size: 14px; color: #555; margin-bottom: 10px;">Mã trường hoặc Mật khẩu Quản lý Root</p>
         <div style="position: relative; width: 100%; margin-bottom: 15px; margin-top: 10px;">
             <input type="password" id="oNhapBaoMat" class="nhap-sua" style="margin-bottom: 0; padding-right: 60px;">
             <button id="nutAnHienBaoMat" type="button" class="nut-phu" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); margin: 0; padding: 4px 8px; font-size: 12px;">Hiện</button>
@@ -294,18 +294,18 @@
         const ungDung = initializeApp(firebaseConfig);
         const coSoDuLieu = getDatabase(ungDung);
 
-        let duongDanDuLieu, duongDanTieuDe, duongDanChoPhepSua;
+        let duongDanDuLieu, duongDanTieuDe, duongDanChoPhepSua, duongDanMatKhau;
         
         let duLieuGoc = [];
         let cacCotHienThi = [];
         let cotAn = "";
         let trangThaiDangNhap = false;
         let choPhepSuaHienTai = false;
+        let matKhauHienTai = "admin";
         let duLieuHangDangSua = null;
         let maTruongHienTai = "";
         let laRoot = false;
         let truongDangSua = null;
-        let matKhauRootHienTai = "root";
         let tienToHienTai = "";
         
         let duLieuTieuDe = {
@@ -384,11 +384,13 @@
             duongDanDuLieu = ref(coSoDuLieu, 'danh_sach_hoc_sinh');
             duongDanTieuDe = ref(coSoDuLieu, 'tieu_de_trang');
             duongDanChoPhepSua = ref(coSoDuLieu, 'cho_phep_sua');
+            duongDanMatKhau = ref(coSoDuLieu, 'mat_khau_admin'); // Tai khoan goc hien co tren Firebase
         } else {
             laRoot = false;
             duongDanDuLieu = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/danh_sach_hoc_sinh');
             duongDanTieuDe = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/tieu_de_trang');
             duongDanChoPhepSua = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/cho_phep_sua');
+            duongDanMatKhau = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/mat_khau_admin');
             
             // Lay tien to cua truong hien tai
             onValue(ref(coSoDuLieu, 'danh_sach_truong/' + maTruongHienTai), (snapshot) => {
@@ -398,9 +400,11 @@
             });
         }
 
-        // Lay mat khau root
-        onValue(ref(coSoDuLieu, 'mat_khau_root'), (snapshot) => {
-            if (snapshot.exists()) matKhauRootHienTai = snapshot.val();
+        // Lay mat khau hien tai (Cho ca Root hoac Truong con tuy vao URL)
+        onValue(duongDanMatKhau, (snapshot) => {
+            if (snapshot.exists()) {
+                matKhauHienTai = snapshot.val();
+            }
         });
 
         // Tu dong dang nhap neu co session
@@ -492,36 +496,35 @@
                 const nhapInfo = await nhapBaoMat();
                 if (nhapInfo === null || nhapInfo.trim() === "") return;
                 
-                // Kiem tra neu la Root
-                if (nhapInfo === matKhauRootHienTai) {
-                    sessionStorage.setItem('dangNhapTruong', 'root');
-                    if (laRoot) {
+                if (laRoot) {
+                    // Kiem tra pass cua tai khoan ban dau (Root)
+                    if (nhapInfo === matKhauHienTai) {
+                        sessionStorage.setItem('dangNhapTruong', 'root');
                         trangThaiDangNhap = true;
                         hienThiGiaoDienQuanLy();
                         document.getElementById('khungRootAdmin').style.display = "block";
                         hienThiDanhSachTruong();
-                    } else {
-                        window.location.href = "?";
+                        return;
                     }
-                    return;
-                }
 
-                // Kiem tra neu dang o dung link truong hien tai
-                if (!laRoot && nhapInfo === maTruongHienTai) {
-                    trangThaiDangNhap = true;
-                    sessionStorage.setItem('dangNhapTruong', maTruongHienTai);
-                    hienThiGiaoDienQuanLy();
-                    return;
-                }
-
-                // Kiem tra ma dang nhap tren toan he thong
-                const truongRef = ref(coSoDuLieu, 'danh_sach_truong/' + nhapInfo);
-                const snapshot = await get(truongRef);
-                if (snapshot.exists()) {
-                    sessionStorage.setItem('dangNhapTruong', nhapInfo);
-                    window.location.href = "?truong=" + nhapInfo;
+                    // Neu khong phai pass Root, kiem tra xem co phai la dang nhap vao link truong con khong
+                    const truongRef = ref(coSoDuLieu, 'danh_sach_truong/' + nhapInfo);
+                    const snapshot = await get(truongRef);
+                    if (snapshot.exists()) {
+                        sessionStorage.setItem('dangNhapTruong', nhapInfo);
+                        window.location.href = "?truong=" + nhapInfo;
+                    } else {
+                        alert("Mật khẩu quản lý Root hoặc mã trường không chính xác!");
+                    }
                 } else {
-                    alert("Mã trường không chính xác!");
+                    // Dang o link truong con, kiem tra mat khau truong con (chi de quan ly, khong phai Root)
+                    if (nhapInfo === matKhauHienTai) {
+                        trangThaiDangNhap = true;
+                        sessionStorage.setItem('dangNhapTruong', maTruongHienTai);
+                        hienThiGiaoDienQuanLy();
+                    } else {
+                        alert("Mã trường hoặc mật khẩu không chính xác!");
+                    }
                 }
             } else {
                 trangThaiDangNhap = false;
