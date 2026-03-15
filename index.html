@@ -243,7 +243,6 @@
         <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Đổi mã số trường</h3>
         <p style="margin-bottom: 5px;">Tiền tố của trường: <strong id="hienThiTienTo" style="color:#d9534f; font-size:16px;"></strong></p>
         <p style="font-size: 12px; color: #777; margin-bottom: 15px;">Mã đăng nhập mới sẽ kết hợp tiền tố này và mã số bạn nhập bên dưới.</p>
-        
         <label style="font-weight: bold;">Mã số mới:</label>
         <input type="text" id="oNhapMaSoMoi" class="nhap-sua" placeholder="Ví dụ: 9999">
         <div style="text-align: right; margin-top: 15px;">
@@ -301,9 +300,9 @@
         let cotAn = "";
         let trangThaiDangNhap = false;
         let choPhepSuaHienTai = false;
-        let matKhauHienTai = "admin"; // Pass Root
+        let matKhauHienTai = "admin"; 
         let duLieuHangDangSua = null;
-        let maTruongHienTai = ""; // La tienTo cua truong
+        let maTruongHienTai = ""; 
         let laRoot = false;
         let truongDangSua = null;
         let tienToHienTai = "";
@@ -389,7 +388,7 @@
         const thamSoURL = new URLSearchParams(window.location.search);
         maTruongHienTai = thamSoURL.get('truong');
 
-        duongDanMatKhauRoot = ref(coSoDuLieu, 'mat_khau_admin'); // Root pass luon nam o day
+        duongDanMatKhauRoot = ref(coSoDuLieu, 'mat_khau_admin'); 
         onValue(duongDanMatKhauRoot, (snapshot) => {
             if (snapshot.exists()) {
                 matKhauHienTai = snapshot.val();
@@ -409,7 +408,6 @@
             duongDanChoPhepSua = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/cho_phep_sua');
             nutDoiMaSo.style.display = "inline-block";
             
-            // Lay thong tin maSo cua truong de lam mat khau
             onValue(ref(coSoDuLieu, 'danh_sach_truong/' + maTruongHienTai), (snapshot) => {
                 if (snapshot.exists()) {
                     tienToHienTai = snapshot.val().tienTo || "";
@@ -507,7 +505,6 @@
                 if (nhapInfo === null || nhapInfo.trim() === "") return;
                 
                 if (laRoot) {
-                    // 1. Kiem tra xem co phai mat khau Root khong
                     if (nhapInfo === matKhauHienTai) {
                         sessionStorage.setItem('dangNhapTruong', 'root');
                         trangThaiDangNhap = true;
@@ -517,7 +514,6 @@
                         return;
                     }
 
-                    // 2. Neu nhap abcxxxx o link Root -> Tim truong de vao
                     const snapshot = await get(ref(coSoDuLieu, 'danh_sach_truong'));
                     let foundTienTo = null;
                     
@@ -538,7 +534,6 @@
                     }
 
                 } else {
-                    // Dang o link truong con (Vi du ?truong=abc), mk la abcxxxx
                     const matKhauTruongNay = tienToHienTai + maSoHienTai;
                     if (nhapInfo === matKhauTruongNay) {
                         trangThaiDangNhap = true;
@@ -567,15 +562,18 @@
                 let html = '<table><thead><tr><th>Mã Trường (Tiền tố)</th><th>Mã Số</th><th>Link Truy Cập</th><th style="text-align:center;">Thao tác</th></tr></thead><tbody>';
                 snapshot.forEach((truongSnap) => {
                     const dl = truongSnap.val();
-                    const tienToHienThi = dl.tienTo || "";
+                    const nodeKey = truongSnap.key; 
+                    const tienToHienThi = dl.tienTo || dl.maTruong || ""; 
                     const maSoHienThi = dl.maSo || "";
+                    const maTruongHienThi = dl.maTruong || nodeKey; 
+                    
                     html += `<tr>
                         <td><strong>${tienToHienThi}</strong></td>
                         <td>${maSoHienThi}</td>
                         <td><a href="${dl.link}" target="_blank">${dl.link}</a></td>
                         <td style="text-align:center;">
-                            <button class="nut-sua-dong nut-sua-truong" data-ma="${dl.tienTo}" data-tiento="${tienToHienThi}" data-maso="${maSoHienThi}">Sửa</button>
-                            <button class="nut-sua-dong nut-xoa-truong" data-ma="${dl.tienTo}">Xóa</button>
+                            <button class="nut-sua-dong nut-sua-truong" data-key="${nodeKey}" data-matruong="${maTruongHienThi}" data-tiento="${tienToHienThi}" data-maso="${maSoHienThi}">Sửa</button>
+                            <button class="nut-sua-dong nut-xoa-truong" data-key="${nodeKey}" data-matruong="${maTruongHienThi}">Xóa</button>
                         </td>
                     </tr>`;
                 });
@@ -593,7 +591,6 @@
                 return;
             }
 
-            // Kiem tra tien to da ton tai chua
             const checkSnap = await get(ref(coSoDuLieu, 'danh_sach_truong/' + tienTo));
             if (checkSnap.exists()) {
                 alert("Tên trường (tiền tố) này đã tồn tại!");
@@ -619,7 +616,8 @@
         document.getElementById('bangDanhSachTruong').addEventListener('click', (suKien) => {
             if (suKien.target.classList.contains('nut-sua-truong')) {
                 truongDangSua = {
-                    maTruong: suKien.target.getAttribute('data-ma'),
+                    nodeKey: suKien.target.getAttribute('data-key'),
+                    maTruong: suKien.target.getAttribute('data-matruong'),
                     tienTo: suKien.target.getAttribute('data-tiento'),
                     maSo: suKien.target.getAttribute('data-maso')
                 };
@@ -632,10 +630,15 @@
             }
             
             if (suKien.target.classList.contains('nut-xoa-truong')) {
-                const ma = suKien.target.getAttribute('data-ma'); // ma o day chinh la tienTo
+                const nodeKey = suKien.target.getAttribute('data-key'); 
+                const oldMaTruong = suKien.target.getAttribute('data-matruong');
+                
                 if(confirm("Bạn có chắc chắn muốn xóa trường này và TOÀN BỘ dữ liệu của trường? Hành động này không thể hoàn tác!")) {
-                    remove(ref(coSoDuLieu, 'danh_sach_truong/' + ma));
-                    remove(ref(coSoDuLieu, 'schools/' + ma));
+                    remove(ref(coSoDuLieu, 'danh_sach_truong/' + nodeKey));
+                    remove(ref(coSoDuLieu, 'schools/' + nodeKey));
+                    if (oldMaTruong && oldMaTruong !== nodeKey) {
+                        remove(ref(coSoDuLieu, 'schools/' + oldMaTruong));
+                    }
                     alert("Đã xóa trường thành công!");
                 }
             }
@@ -654,22 +657,29 @@
             
             const linkTruongMoi = window.location.origin + window.location.pathname + "?truong=" + tienToMoi;
             
-            if(tienToMoi !== truongDangSua.tienTo) {
-                // Kiem tra ma moi ton tai chua
+            if(tienToMoi !== truongDangSua.nodeKey) {
                 const kiemTraTruongMoi = await get(ref(coSoDuLieu, 'danh_sach_truong/' + tienToMoi));
                 if (kiemTraTruongMoi.exists()) {
                     alert("Tên trường (tiền tố) này đã tồn tại, vui lòng chọn tên khác!");
                     return;
                 }
 
-                // Chuyen du lieu
-                const duLieuCuSnap = await get(ref(coSoDuLieu, 'schools/' + truongDangSua.tienTo));
+                let duLieuCuSnap = await get(ref(coSoDuLieu, 'schools/' + truongDangSua.nodeKey));
+                if (!duLieuCuSnap.exists() && truongDangSua.maTruong) {
+                    duLieuCuSnap = await get(ref(coSoDuLieu, 'schools/' + truongDangSua.maTruong));
+                }
+
                 if(duLieuCuSnap.exists()) {
                     await set(ref(coSoDuLieu, 'schools/' + tienToMoi), duLieuCuSnap.val());
-                    await remove(ref(coSoDuLieu, 'schools/' + truongDangSua.tienTo));
                 }
                 
-                await remove(ref(coSoDuLieu, 'danh_sach_truong/' + truongDangSua.tienTo));
+                await remove(ref(coSoDuLieu, 'schools/' + truongDangSua.nodeKey));
+                if (truongDangSua.maTruong && truongDangSua.maTruong !== truongDangSua.nodeKey) {
+                    await remove(ref(coSoDuLieu, 'schools/' + truongDangSua.maTruong));
+                }
+                
+                await remove(ref(coSoDuLieu, 'danh_sach_truong/' + truongDangSua.nodeKey));
+                
                 await set(ref(coSoDuLieu, 'danh_sach_truong/' + tienToMoi), {
                     maTruong: tienToMoi,
                     tienTo: tienToMoi,
@@ -678,8 +688,7 @@
                     ngayTao: new Date().toISOString()
                 });
             } else {
-                // Chi doi ma so
-                await set(ref(coSoDuLieu, 'danh_sach_truong/' + truongDangSua.tienTo + '/maSo'), maSoMoi);
+                await set(ref(coSoDuLieu, 'danh_sach_truong/' + truongDangSua.nodeKey + '/maSo'), maSoMoi);
             }
             
             alert("Đã cập nhật thông tin trường thành công!");
@@ -732,7 +741,6 @@
                 });
         });
 
-        // Tinh nang doi ma so truong (Chi ranh cho Admin Truong - vi Root co bang quan ly rieng)
         nutDoiMaSo.addEventListener('click', () => {
             document.getElementById('hienThiTienTo').textContent = tienToHienTai;
             document.getElementById('oNhapMaSoMoi').value = "";
@@ -758,11 +766,10 @@
             }
 
             try {
-                // Chi can cap nhat maSo moi vao db, khong can doi link hay data
                 await set(ref(coSoDuLieu, 'danh_sach_truong/' + maTruongHienTai + '/maSo'), maSoMoi);
                 
                 alert("Đổi mã số thành công! Mã đăng nhập mới của bạn là: " + tienToHienTai + maSoMoi);
-                maSoHienTai = maSoMoi; // cap nhat bien moi
+                maSoHienTai = maSoMoi; 
                 
                 document.getElementById('lopPhuModal').style.display = 'none';
                 document.getElementById('khungSuaMaSo').style.display = 'none';
