@@ -34,7 +34,7 @@
             color: #007bff;
             white-space: pre-wrap;
             word-wrap: break-word;
-            text-align: left; /* Đã điều chỉnh căn trái tiêu đề 3 */
+            text-align: left;
         }
         .khung-dieukhien {
             background-color: #fff;
@@ -183,6 +183,13 @@
         <h3 id="tieuDe3">Hệ Thống Tìm Kiếm Thông Tin Học Sinh</h3>
     </div>
 
+    <div id="khungThongBaoLink" style="text-align: center; margin-bottom: 20px; display: none;">
+        <div style="display: inline-block; padding: 12px 20px; background-color: #e9ecef; border-left: 5px solid #17a2b8; border-radius: 4px; max-width: 80%; text-align: left; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <div id="noiDungThongBaoLink" style="font-size: 15px; color: #333; white-space: pre-wrap; word-wrap: break-word; margin-bottom: 5px; display: none;"></div>
+            <a id="urlThongBaoLink" href="#" target="_blank" style="font-size: 15px; color: #0056b3; font-weight: bold; text-decoration: underline; display: none;">👉 Nhấn vào đây để xem chi tiết</a>
+        </div>
+    </div>
+
     <div id="khungRootAdmin" style="display: none;">
         <h2 style="color: #d9534f; border-bottom: 2px solid #ddd; padding-bottom: 10px;">Quản Trị Hệ Thống (Root Admin)</h2>
         <div class="khung-dieukhien">
@@ -202,7 +209,8 @@
             <input type="file" id="fileNhap" accept=".xlsx, .xls">
             <button id="nutTaiLen">Nạp dữ liệu Excel</button>
             <button id="nutTaiDuLieu" class="nut-thanh-cong">Tải dữ liệu mới</button>
-            <button id="nutDoiTieuDe" class="nut-phu">Đổi tiêu đề & thông báo</button>
+            <button id="nutDoiTieuDe" class="nut-phu">Đổi tiêu đề 1, 2, 3</button>
+            <button id="nutDoiLinkThongBao" class="nut-phu">Đổi nội dung & link thông báo</button>
             <button id="nutDoiMaSo" class="nut-phu" style="display: none;">Đổi mã số trường</button>
             <button id="nutMoTatSua" class="nut-phu">Mở quyền sửa</button>
             <span id="trangThai" style="margin-left: 10px; color: green; font-weight: bold;"></span>
@@ -227,16 +235,28 @@
     </div>
 
     <div id="khungSuaTieuDe" class="khung-modal" style="min-width: 400px;">
-        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Sửa tiêu đề & Thông báo</h3>
+        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Sửa tiêu đề</h3>
         <label style="font-weight: bold;">Tiêu đề dòng 1:</label>
         <input type="text" id="oNhapDong1" class="nhap-sua">
         <label style="font-weight: bold;">Tiêu đề dòng 2:</label>
         <input type="text" id="oNhapDong2" class="nhap-sua">
-        <label style="font-weight: bold;">Thông báo (Dòng 3 - Hỗ trợ nhiều dòng):</label>
+        <label style="font-weight: bold;">Tiêu đề dòng 3 (Hỗ trợ nhiều dòng):</label>
         <textarea id="oNhapDong3" class="nhap-sua"></textarea>
         <div style="text-align: right; margin-top: 15px;">
             <button id="nutLuuTieuDe" class="nut-thanh-cong">Lưu thay đổi</button>
             <button id="nutDongSuaTieuDe" class="nut-phu">Hủy</button>
+        </div>
+    </div>
+
+    <div id="khungSuaLinkThongBao" class="khung-modal" style="min-width: 400px;">
+        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Sửa nội dung & link thông báo</h3>
+        <label style="font-weight: bold;">Nội dung thông báo (đoạn text):</label>
+        <textarea id="oNhapNoiDungLinkThongBao" class="nhap-sua" placeholder="Ví dụ: Lịch tập trung đội tuyển..."></textarea>
+        <label style="font-weight: bold;">Đường dẫn đính kèm (URL):</label>
+        <input type="text" id="oNhapUrlLinkThongBao" class="nhap-sua" placeholder="VD: https://zalo.me/...">
+        <div style="text-align: right; margin-top: 15px;">
+            <button id="nutLuuLinkThongBao" class="nut-thanh-cong">Lưu thay đổi</button>
+            <button id="nutDongSuaLinkThongBao" class="nut-phu">Hủy</button>
         </div>
     </div>
 
@@ -294,7 +314,7 @@
         const ungDung = initializeApp(firebaseConfig);
         const coSoDuLieu = getDatabase(ungDung);
 
-        let duongDanDuLieu, duongDanTieuDe, duongDanChoPhepSua, duongDanMatKhauRoot;
+        let duongDanDuLieu, duongDanTieuDe, duongDanLinkThongBao, duongDanChoPhepSua, duongDanMatKhauRoot;
         
         let duLieuGoc = [];
         let cacCotHienThi = [];
@@ -315,12 +335,15 @@
             dong3: "Hệ Thống Tìm Kiếm Thông Tin Học Sinh"
         };
 
+        let duLieuLinkThongBao = { noiDung: "", url: "" };
+
         const fileNhap = document.getElementById('fileNhap');
         const nutTaiLen = document.getElementById('nutTaiLen');
         const nutTaiDuLieu = document.getElementById('nutTaiDuLieu');
         const nutDoiMaSo = document.getElementById('nutDoiMaSo');
         const nutDangNhap = document.getElementById('nutDangNhap');
         const nutDoiTieuDe = document.getElementById('nutDoiTieuDe');
+        const nutDoiLinkThongBao = document.getElementById('nutDoiLinkThongBao');
         const khungQuanLy = document.getElementById('khungQuanLy');
         const khungBang = document.getElementById('khungBang');
         const trangThai = document.getElementById('trangThai');
@@ -400,12 +423,14 @@
             laRoot = true;
             duongDanDuLieu = ref(coSoDuLieu, 'danh_sach_hoc_sinh');
             duongDanTieuDe = ref(coSoDuLieu, 'tieu_de_trang');
+            duongDanLinkThongBao = ref(coSoDuLieu, 'link_thong_bao');
             duongDanChoPhepSua = ref(coSoDuLieu, 'cho_phep_sua');
             nutDoiMaSo.style.display = "none";
         } else {
             laRoot = false;
             duongDanDuLieu = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/danh_sach_hoc_sinh');
             duongDanTieuDe = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/tieu_de_trang');
+            duongDanLinkThongBao = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/link_thong_bao');
             duongDanChoPhepSua = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/cho_phep_sua');
             nutDoiMaSo.style.display = "inline-block";
             
@@ -458,6 +483,38 @@
                 tieuDe2.textContent = duLieuTieuDe.dong2 || "";
                 tieuDe3.textContent = duLieuTieuDe.dong3 || "";
                 document.title = (duLieuTieuDe.dong1 || "SỞ GDĐT") + " - " + (duLieuTieuDe.dong2 || "TRƯỜNG");
+            }
+        });
+
+        onValue(duongDanLinkThongBao, (snapshot) => {
+            if (snapshot.exists()) {
+                duLieuLinkThongBao = snapshot.val();
+                const coNoiDung = duLieuLinkThongBao.noiDung && duLieuLinkThongBao.noiDung.trim() !== "";
+                const coUrl = duLieuLinkThongBao.url && duLieuLinkThongBao.url.trim() !== "";
+
+                if (coNoiDung || coUrl) {
+                    document.getElementById('khungThongBaoLink').style.display = 'block';
+                    
+                    const theNoiDung = document.getElementById('noiDungThongBaoLink');
+                    if (coNoiDung) {
+                        theNoiDung.textContent = duLieuLinkThongBao.noiDung;
+                        theNoiDung.style.display = 'block';
+                    } else {
+                        theNoiDung.style.display = 'none';
+                    }
+
+                    const theUrl = document.getElementById('urlThongBaoLink');
+                    if (coUrl) {
+                        theUrl.href = duLieuLinkThongBao.url;
+                        theUrl.style.display = 'inline-block';
+                    } else {
+                        theUrl.style.display = 'none';
+                    }
+                } else {
+                    document.getElementById('khungThongBaoLink').style.display = 'none';
+                }
+            } else {
+                document.getElementById('khungThongBaoLink').style.display = 'none';
             }
         });
 
@@ -738,6 +795,34 @@
                 })
                 .catch((loi) => {
                     alert("Lỗi khi lưu tiêu đề!");
+                    console.error(loi);
+                });
+        });
+
+        nutDoiLinkThongBao.addEventListener('click', () => {
+            document.getElementById('oNhapNoiDungLinkThongBao').value = duLieuLinkThongBao.noiDung || "";
+            document.getElementById('oNhapUrlLinkThongBao').value = duLieuLinkThongBao.url || "";
+            document.getElementById('lopPhuModal').style.display = 'block';
+            document.getElementById('khungSuaLinkThongBao').style.display = 'block';
+        });
+
+        document.getElementById('nutDongSuaLinkThongBao').addEventListener('click', () => {
+            document.getElementById('lopPhuModal').style.display = 'none';
+            document.getElementById('khungSuaLinkThongBao').style.display = 'none';
+        });
+
+        document.getElementById('nutLuuLinkThongBao').addEventListener('click', () => {
+            const nd = document.getElementById('oNhapNoiDungLinkThongBao').value;
+            const link = document.getElementById('oNhapUrlLinkThongBao').value; 
+
+            set(duongDanLinkThongBao, { noiDung: nd, url: link })
+                .then(() => {
+                    alert("Cập nhật nội dung & link thành công!");
+                    document.getElementById('lopPhuModal').style.display = 'none';
+                    document.getElementById('khungSuaLinkThongBao').style.display = 'none';
+                })
+                .catch((loi) => {
+                    alert("Lỗi khi lưu dữ liệu!");
                     console.error(loi);
                 });
         });
