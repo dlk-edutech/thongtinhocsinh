@@ -189,6 +189,14 @@
         </div>
     </div>
 
+    <div id="khungHienThiDemNguoc" style="margin-bottom: 20px; display: none; text-align: center;">
+        <div style="display: inline-block; padding: 15px 30px; background-color: #fff3cd; border: 2px solid #ffeeba; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <div id="textMoTaTrenDemNguoc" style="font-size: 18px; color: #856404; font-weight: bold; margin-bottom: 5px; text-transform: uppercase;"></div>
+            <div id="textThoiGianDemNguoc" style="font-size: 24px; color: #dc3545; font-weight: bold; letter-spacing: 1px; margin-bottom: 5px;"></div>
+            <div id="textMoTaDuoiDemNguoc" style="font-size: 18px; color: #856404; font-weight: bold; text-transform: uppercase;"></div>
+        </div>
+    </div>
+
     <div id="khungRootAdmin" style="display: none;">
         <h2 style="color: #d9534f; border-bottom: 2px solid #ddd; padding-bottom: 10px;">Quản Trị Hệ Thống (Root Admin)</h2>
         <div class="khung-dieukhien">
@@ -210,6 +218,7 @@
             <button id="nutTaiDuLieu" class="nut-thanh-cong">Tải dữ liệu mới</button>
             <button id="nutDoiTieuDe" class="nut-phu">Đổi tiêu đề 1, 2, 3</button>
             <button id="nutDoiLinkThongBao" class="nut-phu">Đổi nội dung & link thông báo</button>
+            <button id="nutCaiDatDemNguoc" class="nut-phu">Cài đặt đếm ngược</button>
             <button id="nutDoiMaSo" class="nut-phu" style="display: none;">Đổi mã số trường</button>
             <button id="nutMoTatSua" class="nut-phu">Mở quyền sửa</button>
             <span id="trangThai" style="margin-left: 10px; color: green; font-weight: bold;"></span>
@@ -230,6 +239,25 @@
         <div style="text-align: right;">
             <button id="nutXacNhanBaoMat" class="nut-thanh-cong">Xác nhận</button>
             <button id="nutHuyBaoMat" class="nut-phu">Hủy</button>
+        </div>
+    </div>
+
+    <div id="khungSuaDemNguoc" class="khung-modal" style="min-width: 400px;">
+        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Cài đặt đếm ngược thời gian</h3>
+        <div style="margin-bottom: 15px;">
+            <label style="font-weight: bold; cursor: pointer;">
+                <input type="checkbox" id="oTrangThaiDemNguoc" style="margin-right: 5px; transform: scale(1.2);"> Kích hoạt chức năng đếm ngược
+            </label>
+        </div>
+        <label style="font-weight: bold;">Dòng chữ trên (Ví dụ: CÒN LẠI):</label>
+        <input type="text" id="oMoTaTrenDemNguoc" class="nhap-sua" placeholder="Nhập nội dung dòng 1...">
+        <label style="font-weight: bold;">Thời gian đích đến (Dòng 2):</label>
+        <input type="datetime-local" id="oThoiGianDemNguoc" class="nhap-sua">
+        <label style="font-weight: bold;">Dòng chữ dưới (Ví dụ: LÀ ĐẾN NGÀY ABC):</label>
+        <input type="text" id="oMoTaDuoiDemNguoc" class="nhap-sua" placeholder="Nhập nội dung dòng 3...">
+        <div style="text-align: right; margin-top: 15px;">
+            <button id="nutLuuDemNguoc" class="nut-thanh-cong">Lưu thay đổi</button>
+            <button id="nutDongSuaDemNguoc" class="nut-phu">Hủy</button>
         </div>
     </div>
 
@@ -313,7 +341,7 @@
         const ungDung = initializeApp(firebaseConfig);
         const coSoDuLieu = getDatabase(ungDung);
 
-        let duongDanDuLieu, duongDanTieuDe, duongDanLinkThongBao, duongDanChoPhepSua, duongDanMatKhauRoot;
+        let duongDanDuLieu, duongDanTieuDe, duongDanLinkThongBao, duongDanChoPhepSua, duongDanMatKhauRoot, duongDanDemNguoc;
         
         let duLieuGoc = [];
         let cacCotHienThi = [];
@@ -335,6 +363,8 @@
         };
 
         let duLieuLinkThongBao = { noiDung: "", url: "" };
+        let duLieuDemNguoc = { trangThai: false, moTaTren: "CÒN LẠI", moTaDuoi: "", thoiGian: "" };
+        let intervalDemNguoc = null;
 
         const fileNhap = document.getElementById('fileNhap');
         const nutTaiLen = document.getElementById('nutTaiLen');
@@ -343,6 +373,7 @@
         const nutDangNhap = document.getElementById('nutDangNhap');
         const nutDoiTieuDe = document.getElementById('nutDoiTieuDe');
         const nutDoiLinkThongBao = document.getElementById('nutDoiLinkThongBao');
+        const nutCaiDatDemNguoc = document.getElementById('nutCaiDatDemNguoc');
         const khungQuanLy = document.getElementById('khungQuanLy');
         const khungBang = document.getElementById('khungBang');
         const trangThai = document.getElementById('trangThai');
@@ -424,6 +455,7 @@
             duongDanTieuDe = ref(coSoDuLieu, 'tieu_de_trang');
             duongDanLinkThongBao = ref(coSoDuLieu, 'link_thong_bao');
             duongDanChoPhepSua = ref(coSoDuLieu, 'cho_phep_sua');
+            duongDanDemNguoc = ref(coSoDuLieu, 'cai_dat_dem_nguoc');
             nutDoiMaSo.style.display = "none";
         } else {
             laRoot = false;
@@ -431,6 +463,7 @@
             duongDanTieuDe = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/tieu_de_trang');
             duongDanLinkThongBao = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/link_thong_bao');
             duongDanChoPhepSua = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/cho_phep_sua');
+            duongDanDemNguoc = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/cai_dat_dem_nguoc');
             nutDoiMaSo.style.display = "inline-block";
             
             onValue(ref(coSoDuLieu, 'danh_sach_truong/' + maTruongHienTai), (snapshot) => {
@@ -485,7 +518,7 @@
             }
         });
 
-        // Hien thi noi dung thong bao va tich hop link ngay ben canh
+        // Xử lý thông báo
         onValue(duongDanLinkThongBao, (snapshot) => {
             if (snapshot.exists()) {
                 duLieuLinkThongBao = snapshot.val();
@@ -523,6 +556,61 @@
                 document.getElementById('khungThongBaoLink').style.display = 'none';
             }
         });
+
+        // Xử lý logic đếm ngược
+        function capNhatHienThiDemNguoc() {
+            if (intervalDemNguoc) {
+                clearInterval(intervalDemNguoc);
+            }
+
+            const khungHienThi = document.getElementById('khungHienThiDemNguoc');
+            const textMoTaTren = document.getElementById('textMoTaTrenDemNguoc');
+            const textThoiGian = document.getElementById('textThoiGianDemNguoc');
+            const textMoTaDuoi = document.getElementById('textMoTaDuoiDemNguoc');
+
+            if (!duLieuDemNguoc || !duLieuDemNguoc.trangThai || !duLieuDemNguoc.thoiGian) {
+                khungHienThi.style.display = 'none';
+                return;
+            }
+
+            khungHienThi.style.display = 'block';
+            textMoTaTren.textContent = duLieuDemNguoc.moTaTren ? duLieuDemNguoc.moTaTren : "CÒN LẠI";
+            textMoTaDuoi.textContent = duLieuDemNguoc.moTaDuoi ? duLieuDemNguoc.moTaDuoi : "";
+
+            const thoiGianDich = new Date(duLieuDemNguoc.thoiGian).getTime();
+
+            intervalDemNguoc = setInterval(() => {
+                const thoiGianHienTai = new Date().getTime();
+                const khoangCach = thoiGianDich - thoiGianHienTai;
+
+                if (khoangCach < 0) {
+                    clearInterval(intervalDemNguoc);
+                    textThoiGian.textContent = "SỰ KIỆN ĐÃ DIỄN RA HOẶC KẾT THÚC";
+                    return;
+                }
+
+                const ngay = Math.floor(khoangCach / (1000 * 60 * 60 * 24));
+                const gio = Math.floor((khoangCach % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const phut = Math.floor((khoangCach % (1000 * 60 * 60)) / (1000 * 60));
+                const giay = Math.floor((khoangCach % (1000 * 60)) / 1000);
+
+                let chuoiThoiGian = "";
+                if(ngay > 0) chuoiThoiGian += ngay + " NGÀY ";
+                chuoiThoiGian += ("0" + gio).slice(-2) + " GIỜ " + ("0" + phut).slice(-2) + " PHÚT " + ("0" + giay).slice(-2) + " GIÂY";
+
+                textThoiGian.textContent = chuoiThoiGian;
+            }, 1000);
+        }
+
+        onValue(duongDanDemNguoc, (snapshot) => {
+            if (snapshot.exists()) {
+                duLieuDemNguoc = snapshot.val();
+            } else {
+                duLieuDemNguoc = { trangThai: false, moTaTren: "CÒN LẠI", moTaDuoi: "", thoiGian: "" };
+            }
+            capNhatHienThiDemNguoc();
+        });
+
 
         onValue(duongDanDuLieu, (snapshot) => {
             const duLieuNhan = snapshot.val();
@@ -772,6 +860,48 @@
             set(duongDanChoPhepSua, trangThaiMoi)
                 .then(() => alert(trangThaiMoi ? "Đã mở chức năng sửa dữ liệu cho học sinh!" : "Đã khóa chức năng sửa dữ liệu!"))
                 .catch((loi) => console.error(loi));
+        });
+
+        // Nút mở modal đếm ngược
+        nutCaiDatDemNguoc.addEventListener('click', () => {
+            document.getElementById('oTrangThaiDemNguoc').checked = duLieuDemNguoc.trangThai || false;
+            document.getElementById('oMoTaTrenDemNguoc').value = duLieuDemNguoc.moTaTren || "CÒN LẠI";
+            document.getElementById('oMoTaDuoiDemNguoc').value = duLieuDemNguoc.moTaDuoi || "";
+            document.getElementById('oThoiGianDemNguoc').value = duLieuDemNguoc.thoiGian || "";
+            
+            document.getElementById('lopPhuModal').style.display = 'block';
+            document.getElementById('khungSuaDemNguoc').style.display = 'block';
+        });
+
+        document.getElementById('nutDongSuaDemNguoc').addEventListener('click', () => {
+            document.getElementById('lopPhuModal').style.display = 'none';
+            document.getElementById('khungSuaDemNguoc').style.display = 'none';
+        });
+
+        document.getElementById('nutLuuDemNguoc').addEventListener('click', () => {
+            const trangThaiChon = document.getElementById('oTrangThaiDemNguoc').checked;
+            const moTaTrenNhan = document.getElementById('oMoTaTrenDemNguoc').value.trim();
+            const moTaDuoiNhan = document.getElementById('oMoTaDuoiDemNguoc').value.trim();
+            const thoiGianChon = document.getElementById('oThoiGianDemNguoc').value;
+
+            if (trangThaiChon && !thoiGianChon) {
+                alert("Vui lòng chọn thời gian đích đến để đếm ngược!");
+                return;
+            }
+
+            set(duongDanDemNguoc, {
+                trangThai: trangThaiChon,
+                moTaTren: moTaTrenNhan,
+                moTaDuoi: moTaDuoiNhan,
+                thoiGian: thoiGianChon
+            }).then(() => {
+                alert("Cập nhật đếm ngược thành công!");
+                document.getElementById('lopPhuModal').style.display = 'none';
+                document.getElementById('khungSuaDemNguoc').style.display = 'none';
+            }).catch((loi) => {
+                alert("Lỗi khi lưu cài đặt đếm ngược!");
+                console.error(loi);
+            });
         });
 
         nutDoiTieuDe.addEventListener('click', () => {
