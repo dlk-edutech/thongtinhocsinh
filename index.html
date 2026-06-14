@@ -172,7 +172,6 @@
     </style>
 </head>
 <body>
-
     <div class="khung-top-right">
         <button id="nutDangNhap" class="nut-phu">Đăng nhập quản lý</button>
     </div>
@@ -216,6 +215,7 @@
             <input type="file" id="fileNhap" accept=".xlsx, .xls">
             <button id="nutTaiLen">Nạp dữ liệu Excel</button>
             <button id="nutTaiDuLieu" class="nut-thanh-cong">Tải dữ liệu mới</button>
+            <button id="nutCaiDatCot" class="nut-phu">Cài đặt cột</button>
             <button id="nutDoiTieuDe" class="nut-phu">Đổi tiêu đề 1, 2, 3</button>
             <button id="nutDoiLinkThongBao" class="nut-phu">Đổi nội dung & link thông báo</button>
             <button id="nutCaiDatDemNguoc" class="nut-phu">Cài đặt đếm ngược</button>
@@ -239,6 +239,28 @@
         <div style="text-align: right;">
             <button id="nutXacNhanBaoMat" class="nut-thanh-cong">Xác nhận</button>
             <button id="nutHuyBaoMat" class="nut-phu">Hủy</button>
+        </div>
+    </div>
+
+    <div id="khungCaiDatCot" class="khung-modal" style="min-width: 550px;">
+        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Cài đặt hiển thị và sửa cột</h3>
+        <p style="font-size: 13px; color: #555;">Tùy chỉnh cột nào hiển thị trên bảng, cột nào cho phép học sinh sửa và cột nào dùng làm mã bảo mật (chọn 1).</p>
+        <div style="max-height: 400px; overflow-y: auto;">
+            <table>
+                <thead style="position: sticky; top: 0; background: #f2f2f2; z-index: 1;">
+                    <tr>
+                        <th>Tên cột</th>
+                        <th style="text-align:center;">Hiển thị</th>
+                        <th style="text-align:center;">Cho sửa</th>
+                        <th style="text-align:center;">Cột bảo mật (Ẩn)</th>
+                    </tr>
+                </thead>
+                <tbody id="noiDungCaiDatCot"></tbody>
+            </table>
+        </div>
+        <div style="text-align: right; margin-top: 15px;">
+            <button id="nutLuuCaiDatCot" class="nut-thanh-cong">Lưu cài đặt</button>
+            <button id="nutDongCaiDatCot" class="nut-phu">Hủy</button>
         </div>
     </div>
 
@@ -341,11 +363,14 @@
         const ungDung = initializeApp(firebaseConfig);
         const coSoDuLieu = getDatabase(ungDung);
 
-        let duongDanDuLieu, duongDanTieuDe, duongDanLinkThongBao, duongDanChoPhepSua, duongDanMatKhauRoot, duongDanDemNguoc;
+        let duongDanDuLieu, duongDanTieuDe, duongDanLinkThongBao, duongDanChoPhepSua, duongDanMatKhauRoot, duongDanDemNguoc, duongDanCaiDatCot;
         
         let duLieuGoc = [];
         let cacCotHienThi = [];
+        let tatCaCotExcel = [];
+        let cauHinhCot = {};
         let cotAn = "";
+        
         let trangThaiDangNhap = false;
         let choPhepSuaHienTai = false;
         let matKhauHienTai = "admin"; 
@@ -369,6 +394,7 @@
         const fileNhap = document.getElementById('fileNhap');
         const nutTaiLen = document.getElementById('nutTaiLen');
         const nutTaiDuLieu = document.getElementById('nutTaiDuLieu');
+        const nutCaiDatCot = document.getElementById('nutCaiDatCot');
         const nutDoiMaSo = document.getElementById('nutDoiMaSo');
         const nutDangNhap = document.getElementById('nutDangNhap');
         const nutDoiTieuDe = document.getElementById('nutDoiTieuDe');
@@ -397,7 +423,7 @@
                 } else if (loai === "school") {
                     moTaDangNhap.textContent = `Mã đăng nhập quản lý trường (Ví dụ: ${tienToHienTai}xxxx)`;
                 } else {
-                    moTaDangNhap.textContent = "Nhập thông tin xác thực";
+                    moTaDangNhap.textContent = "Nhập thông tin xác thực đối chiếu";
                 }
 
                 oNhapBaoMat.value = '';
@@ -456,6 +482,7 @@
             duongDanLinkThongBao = ref(coSoDuLieu, 'link_thong_bao');
             duongDanChoPhepSua = ref(coSoDuLieu, 'cho_phep_sua');
             duongDanDemNguoc = ref(coSoDuLieu, 'cai_dat_dem_nguoc');
+            duongDanCaiDatCot = ref(coSoDuLieu, 'cai_dat_cot');
             nutDoiMaSo.style.display = "none";
         } else {
             laRoot = false;
@@ -464,6 +491,7 @@
             duongDanLinkThongBao = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/link_thong_bao');
             duongDanChoPhepSua = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/cho_phep_sua');
             duongDanDemNguoc = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/cai_dat_dem_nguoc');
+            duongDanCaiDatCot = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/cai_dat_cot');
             nutDoiMaSo.style.display = "inline-block";
             
             onValue(ref(coSoDuLieu, 'danh_sach_truong/' + maTruongHienTai), (snapshot) => {
@@ -518,7 +546,52 @@
             }
         });
 
-        // Xử lý thông báo
+        onValue(duongDanCaiDatCot, (snapshot) => {
+            if (snapshot.exists()) {
+                cauHinhCot = snapshot.val();
+            } else {
+                cauHinhCot = {};
+            }
+            if (tatCaCotExcel.length > 0) {
+                apDungCauHinhCot();
+            }
+        });
+
+        function apDungCauHinhCot() {
+            if (tatCaCotExcel.length === 0) return;
+
+            let cauHinhThucTe = {};
+            let coCotAnDaChon = false;
+
+            tatCaCotExcel.forEach((cot, viTri) => {
+                if (cauHinhCot[cot]) {
+                    cauHinhThucTe[cot] = cauHinhCot[cot];
+                    if (cauHinhThucTe[cot].laCotAn) coCotAnDaChon = true;
+                } else {
+                    cauHinhThucTe[cot] = {
+                        hienThi: viTri !== 0,
+                        choSua: viTri !== 0,
+                        laCotAn: viTri === 0
+                    };
+                    if (viTri === 0) coCotAnDaChon = true;
+                }
+            });
+
+            if (!coCotAnDaChon && tatCaCotExcel.length > 0) {
+                 cauHinhThucTe[tatCaCotExcel[0]].laCotAn = true;
+                 cauHinhThucTe[tatCaCotExcel[0]].hienThi = false;
+            }
+
+            cotAn = tatCaCotExcel.find(cot => cauHinhThucTe[cot].laCotAn);
+            if(!cotAn) cotAn = tatCaCotExcel[0]; 
+
+            cacCotHienThi = tatCaCotExcel.filter(cot => cauHinhThucTe[cot].hienThi);
+            cauHinhCot = cauHinhThucTe;
+
+            taoKhungBang();
+            capNhatThanBang([], true);
+        }
+
         onValue(duongDanLinkThongBao, (snapshot) => {
             if (snapshot.exists()) {
                 duLieuLinkThongBao = snapshot.val();
@@ -530,7 +603,7 @@
 
                 if (coNoiDung || coUrl) {
                     khungThongBao.style.display = 'block';
-                    theNoiDung.innerHTML = ''; 
+                    theNoiDung.innerHTML = '';
                     
                     if (coNoiDung) {
                         theNoiDung.appendChild(document.createTextNode(duLieuLinkThongBao.noiDung));
@@ -557,7 +630,6 @@
             }
         });
 
-        // Xử lý logic đếm ngược
         function capNhatHienThiDemNguoc() {
             if (intervalDemNguoc) {
                 clearInterval(intervalDemNguoc);
@@ -611,7 +683,6 @@
             capNhatHienThiDemNguoc();
         });
 
-
         onValue(duongDanDuLieu, (snapshot) => {
             const duLieuNhan = snapshot.val();
             if (duLieuNhan && duLieuNhan.danhSach && duLieuNhan.danhSach.length > 0) {
@@ -624,17 +695,8 @@
                 });
                 
                 if (duLieuGoc.length > 0) {
-                    const tatCaCot = duLieuNhan.thuTu || Object.keys(duLieuGoc[0]).filter(k => k !== "_viTriGoc" && k !== "_thongTinSua" && k !== "_daSua");
-                    
-                    if (tatCaCot.length > 0) {
-                        cotAn = tatCaCot[0];
-                        cacCotHienThi = tatCaCot.slice(1).filter(cot => {
-                            return duLieuGoc.some(hang => hang[cot] !== undefined && hang[cot] !== null && String(hang[cot]).trim() !== "");
-                        });
-                    }
-
-                    taoKhungBang();
-                    capNhatThanBang([], true);
+                    tatCaCotExcel = duLieuNhan.thuTu || Object.keys(duLieuGoc[0]).filter(k => k !== "_viTriGoc" && k !== "_thongTinSua" && k !== "_daSua");
+                    apDungCauHinhCot();
                 }
             } else {
                 khungBang.innerHTML = "<p>Chưa có dữ liệu trên hệ thống. Vui lòng nạp từ file Excel.</p>";
@@ -717,7 +779,7 @@
                     const nodeKey = truongSnap.key; 
                     const tienToHienThi = dl.tienTo || dl.maTruong || ""; 
                     const maSoHienThi = dl.maSo || "";
-                    const maTruongHienThi = dl.maTruong || nodeKey; 
+                    const maTruongHienThi = dl.maTruong || nodeKey;
                     
                     html += `<tr>
                         <td><strong>${tienToHienThi}</strong></td>
@@ -862,7 +924,79 @@
                 .catch((loi) => console.error(loi));
         });
 
-        // Nút mở modal đếm ngược
+        // Xử lý Cài Đặt Cột
+        nutCaiDatCot.addEventListener('click', () => {
+            if (tatCaCotExcel.length === 0) {
+                alert("Chưa có dữ liệu bảng để cài đặt! Vui lòng nạp dữ liệu Excel trước.");
+                return;
+            }
+
+            let htmlCaiDat = '';
+            tatCaCotExcel.forEach(cot => {
+                const macDinh = cauHinhCot[cot] || { hienThi: false, choSua: false, laCotAn: false };
+                htmlCaiDat += `
+                <tr>
+                    <td><strong>${cot}</strong></td>
+                    <td style="text-align:center;"><input type="checkbox" class="chk-hien-thi" data-cot="${cot}" ${macDinh.hienThi ? 'checked' : ''} style="transform: scale(1.3); cursor: pointer;"></td>
+                    <td style="text-align:center;"><input type="checkbox" class="chk-cho-sua" data-cot="${cot}" ${macDinh.choSua ? 'checked' : ''} style="transform: scale(1.3); cursor: pointer;"></td>
+                    <td style="text-align:center;"><input type="radio" name="rad-cot-an" class="rad-cot-an" data-cot="${cot}" value="${cot}" ${macDinh.laCotAn ? 'checked' : ''} style="transform: scale(1.3); cursor: pointer;"></td>
+                </tr>`;
+            });
+            document.getElementById('noiDungCaiDatCot').innerHTML = htmlCaiDat;
+            document.getElementById('lopPhuModal').style.display = 'block';
+            document.getElementById('khungCaiDatCot').style.display = 'block';
+
+            document.querySelectorAll('.rad-cot-an').forEach(rad => {
+                rad.addEventListener('change', (suKien) => {
+                    if(suKien.target.checked) {
+                        const cotChon = suKien.target.getAttribute('data-cot');
+                        const theChkHienThi = document.querySelector(`.chk-hien-thi[data-cot="${cotChon}"]`);
+                        if(theChkHienThi) theChkHienThi.checked = false;
+                    }
+                });
+            });
+        });
+
+        document.getElementById('nutDongCaiDatCot').addEventListener('click', () => {
+            document.getElementById('lopPhuModal').style.display = 'none';
+            document.getElementById('khungCaiDatCot').style.display = 'none';
+        });
+
+        document.getElementById('nutLuuCaiDatCot').addEventListener('click', () => {
+            let cauHinhMoiLuu = {};
+            let coCotAn = false;
+
+            tatCaCotExcel.forEach(cot => {
+                const theHienThi = document.querySelector(`.chk-hien-thi[data-cot="${cot}"]`);
+                const theChoSua = document.querySelector(`.chk-cho-sua[data-cot="${cot}"]`);
+                const theCotAn = document.querySelector(`.rad-cot-an[data-cot="${cot}"]`);
+
+                cauHinhMoiLuu[cot] = {
+                    hienThi: theHienThi ? theHienThi.checked : false,
+                    choSua: theChoSua ? theChoSua.checked : false,
+                    laCotAn: theCotAn ? theCotAn.checked : false
+                };
+
+                if (cauHinhMoiLuu[cot].laCotAn) coCotAn = true;
+            });
+
+            if (!coCotAn) {
+                alert("Vui lòng chọn 1 cột làm Cột bảo mật (Ẩn) trước khi lưu!");
+                return;
+            }
+
+            set(duongDanCaiDatCot, cauHinhMoiLuu)
+                .then(() => {
+                    alert("Cập nhật cài đặt cột thành công!");
+                    document.getElementById('lopPhuModal').style.display = 'none';
+                    document.getElementById('khungCaiDatCot').style.display = 'none';
+                })
+                .catch(loi => {
+                    alert("Có lỗi khi lưu cấu hình cột!");
+                    console.error(loi);
+                });
+        });
+
         nutCaiDatDemNguoc.addEventListener('click', () => {
             document.getElementById('oTrangThaiDemNguoc').checked = duLieuDemNguoc.trangThai || false;
             document.getElementById('oMoTaTrenDemNguoc').value = duLieuDemNguoc.moTaTren || "CÒN LẠI";
@@ -1009,11 +1143,11 @@
 
             const duLieuXuat = duLieuGoc.map(hang => {
                 let hangMoi = {};
-                const tatCaCot = Object.keys(hang).filter(k => k !== "_viTriGoc" && k !== "_thongTinSua" && k !== "_daSua");
+                const tatCaCotThucTe = Object.keys(hang).filter(k => k !== "_viTriGoc" && k !== "_thongTinSua" && k !== "_daSua");
                 
                 if(cotAn) hangMoi[cotAn] = hang[cotAn];
 
-                tatCaCot.forEach(cot => {
+                tatCaCotThucTe.forEach(cot => {
                     if (cot !== cotAn) {
                         if (hang._thongTinSua && hang._thongTinSua[cot] !== undefined) {
                             hangMoi[cot] = hang._thongTinSua[cot];
@@ -1196,15 +1330,21 @@
                 if (!duLieuHangDangSua._thongTinSua) duLieuHangDangSua._thongTinSua = {};
 
                 let htmlSua = '';
-                cacCotHienThi.forEach(cot => {
-                    const giaTriGoc = duLieuHangDangSua[cot] !== undefined ? duLieuHangDangSua[cot] : '';
-                    const giaTriHienTai = duLieuHangDangSua._thongTinSua[cot] !== undefined ? duLieuHangDangSua._thongTinSua[cot] : giaTriGoc;
-                    
-                    htmlSua += `
-                        <label style="font-weight: bold; display: block;">${cot}</label>
-                        <input type="text" id="inputSua_${cot}" class="nhap-sua" value="${giaTriHienTai}">
-                    `;
+                tatCaCotExcel.forEach(cot => {
+                    if (cauHinhCot[cot] && cauHinhCot[cot].choSua) {
+                        const giaTriGoc = duLieuHangDangSua[cot] !== undefined ? duLieuHangDangSua[cot] : '';
+                        const giaTriHienTai = duLieuHangDangSua._thongTinSua[cot] !== undefined ? duLieuHangDangSua._thongTinSua[cot] : giaTriGoc;
+                        
+                        htmlSua += `
+                            <label style="font-weight: bold; display: block;">${cot}</label>
+                            <input type="text" id="inputSua_${cot}" class="nhap-sua" value="${giaTriHienTai}">
+                        `;
+                    }
                 });
+
+                if (htmlSua === '') {
+                    htmlSua = '<p style="color:red; font-style:italic;">Quản trị viên chưa cấp quyền sửa đổi cho bất kỳ cột nào.</p>';
+                }
 
                 document.getElementById('noiDungSua').innerHTML = htmlSua;
                 document.getElementById('lopPhuModal').style.display = 'block';
@@ -1225,16 +1365,19 @@
                 duLieuHangDangSua._thongTinSua = {};
             }
 
-            cacCotHienThi.forEach(cot => {
-                const giaTriMoi = document.getElementById(`inputSua_${cot}`).value;
-                const giaTriGoc = duLieuHangDangSua[cot] !== undefined ? String(duLieuHangDangSua[cot]) : "";
-                
-                if (giaTriMoi !== giaTriGoc) {
-                    duLieuHangDangSua._thongTinSua[cot] = giaTriMoi;
-                    coThayDoi = true;
-                } else if (duLieuHangDangSua._thongTinSua[cot] !== undefined) {
-                    delete duLieuHangDangSua._thongTinSua[cot];
-                    coThayDoi = true;
+            tatCaCotExcel.forEach(cot => {
+                const theSua = document.getElementById(`inputSua_${cot}`);
+                if (theSua) {
+                    const giaTriMoi = theSua.value;
+                    const giaTriGoc = duLieuHangDangSua[cot] !== undefined ? String(duLieuHangDangSua[cot]) : "";
+                    
+                    if (giaTriMoi !== giaTriGoc) {
+                        duLieuHangDangSua._thongTinSua[cot] = giaTriMoi;
+                        coThayDoi = true;
+                    } else if (duLieuHangDangSua._thongTinSua[cot] !== undefined) {
+                        delete duLieuHangDangSua._thongTinSua[cot];
+                        coThayDoi = true;
+                    }
                 }
             });
 
@@ -1260,7 +1403,8 @@
                 document.getElementById('khungSuaDuLieu').style.display = 'none';
             }
         });
-
     </script>
 </body>
 </html>
+
+```
