@@ -198,12 +198,14 @@
 
     <div id="khungRootAdmin" style="display: none;">
         <h2 style="color: #d9534f; border-bottom: 2px solid #ddd; padding-bottom: 10px;">Quản Trị Hệ Thống (Root Admin)</h2>
+        
         <div class="khung-dieukhien">
             <h3>Tạo tài khoản trường mới</h3>
             <input type="text" id="oTienToTruong" class="o-nhap-root" placeholder="Tên trường (vd: abc)">
             <input type="text" id="oMaSoTruong" class="o-nhap-root" placeholder="Mã số (vd: 1234)">
             <button id="nutTaoTruongMoi" class="nut-thanh-cong">Tạo Mới</button>
         </div>
+
         <div class="khung-dieukhien">
             <h3>Danh sách các trường đang hoạt động</h3>
             <div id="bangDanhSachTruong"></div>
@@ -216,6 +218,7 @@
             <button id="nutTaiLen">Nạp dữ liệu Excel</button>
             <button id="nutTaiDuLieu" class="nut-thanh-cong">Tải dữ liệu mới</button>
             <button id="nutCaiDatCot" class="nut-phu">Cài đặt cột</button>
+            <button id="nutThemCotCongThuc" class="nut-thanh-cong">Thêm cột công thức</button>
             <button id="nutDoiTieuDe" class="nut-phu">Đổi tiêu đề 1, 2, 3</button>
             <button id="nutDoiLinkThongBao" class="nut-phu">Đổi nội dung & link thông báo</button>
             <button id="nutCaiDatDemNguoc" class="nut-phu">Cài đặt đếm ngược</button>
@@ -261,6 +264,20 @@
         <div style="text-align: right; margin-top: 15px;">
             <button id="nutLuuCaiDatCot" class="nut-thanh-cong">Lưu cài đặt</button>
             <button id="nutDongCaiDatCot" class="nut-phu">Hủy</button>
+        </div>
+    </div>
+
+    <div id="khungThemCotCongThuc" class="khung-modal" style="min-width: 450px;">
+        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Thêm cột công thức</h3>
+        <p style="font-size: 13px; color: #555;">Tạo cột mới tính toán từ các cột hiện có. Hỗ trợ các phép toán: +, -, *, /, (, ).</p>
+        <p id="goiYCotCongThuc" style="font-size: 13px; color: #d9534f; margin-bottom: 15px; word-wrap: break-word;"></p>
+        <label style="font-weight: bold;">Tên cột mới:</label>
+        <input type="text" id="oTenCotCongThuc" class="nhap-sua" placeholder="VD: Tong Diem">
+        <label style="font-weight: bold;">Công thức (Nhập ĐÚNG tên cột có trong danh sách trên):</label>
+        <textarea id="oBieuThucCongThuc" class="nhap-sua" placeholder="VD: Toan + Van * 2"></textarea>
+        <div style="text-align: right; margin-top: 15px;">
+            <button id="nutLuuCotCongThuc" class="nut-thanh-cong">Lưu và tính toán</button>
+            <button id="nutDongCotCongThuc" class="nut-phu">Hủy</button>
         </div>
     </div>
 
@@ -395,6 +412,7 @@
         const nutTaiLen = document.getElementById('nutTaiLen');
         const nutTaiDuLieu = document.getElementById('nutTaiDuLieu');
         const nutCaiDatCot = document.getElementById('nutCaiDatCot');
+        const nutThemCotCongThuc = document.getElementById('nutThemCotCongThuc');
         const nutDoiMaSo = document.getElementById('nutDoiMaSo');
         const nutDangNhap = document.getElementById('nutDangNhap');
         const nutDoiTieuDe = document.getElementById('nutDoiTieuDe');
@@ -408,10 +426,19 @@
         const tieuDe3 = document.getElementById('tieuDe3');
         const nutMoTatSua = document.getElementById('nutMoTatSua');
 
+        // Giao dien nut chuc nang Them Cot Cong Thuc
+        const khungThemCotCongThuc = document.getElementById('khungThemCotCongThuc');
+        const nutDongCotCongThuc = document.getElementById('nutDongCotCongThuc');
+        const nutLuuCotCongThuc = document.getElementById('nutLuuCotCongThuc');
+        const oTenCotCongThuc = document.getElementById('oTenCotCongThuc');
+        const oBieuThucCongThuc = document.getElementById('oBieuThucCongThuc');
+        const goiYCotCongThuc = document.getElementById('goiYCotCongThuc');
+        const lopPhu = document.getElementById('lopPhuModal');
+
         function nhapBaoMat(loai) {
             return new Promise((giaiQuyet) => {
                 const khungBaoMat = document.getElementById('khungNhapBaoMat');
-                const lopPhu = document.getElementById('lopPhuModal');
+                const lopPhuModal = document.getElementById('lopPhuModal');
                 const oNhapBaoMat = document.getElementById('oNhapBaoMat');
                 const nutAnHienBaoMat = document.getElementById('nutAnHienBaoMat');
                 const nutXacNhanBaoMat = document.getElementById('nutXacNhanBaoMat');
@@ -431,12 +458,12 @@
                 nutAnHienBaoMat.textContent = 'Hiện';
 
                 khungBaoMat.style.display = 'block';
-                lopPhu.style.display = 'block';
+                lopPhuModal.style.display = 'block';
                 oNhapBaoMat.focus();
 
                 const dongKhungBaoMat = (giaTri) => {
                     khungBaoMat.style.display = 'none';
-                    lopPhu.style.display = 'none';
+                    lopPhuModal.style.display = 'none';
                     nutXacNhanBaoMat.onclick = null;
                     nutHuyBaoMat.onclick = null;
                     nutAnHienBaoMat.onclick = null;
@@ -577,7 +604,7 @@
                 }
             });
 
-            if (!coCotAnDaChon && tatCaCotExcel.length > 0) {
+            if (!coCotAnDaChon && tatCaCotExcel.length > 0) { 
                  cauHinhThucTe[tatCaCotExcel[0]].laCotAn = true;
                  cauHinhThucTe[tatCaCotExcel[0]].hienThi = false;
             }
@@ -997,6 +1024,93 @@
                 });
         });
 
+        // Xu ly chuc nang Them Cot Cong Thuc
+        nutThemCotCongThuc.addEventListener('click', () => {
+            if (tatCaCotExcel.length === 0) {
+                alert("Chưa có dữ liệu bảng! Vui lòng nạp file Excel trước.");
+                return;
+            }
+            goiYCotCongThuc.innerHTML = "Các cột hiện có: <strong>" + tatCaCotExcel.join("</strong>, <strong>") + "</strong>";
+            oTenCotCongThuc.value = "";
+            oBieuThucCongThuc.value = "";
+            lopPhu.style.display = 'block';
+            khungThemCotCongThuc.style.display = 'block';
+        });
+
+        nutDongCotCongThuc.addEventListener('click', () => {
+            lopPhu.style.display = 'none';
+            khungThemCotCongThuc.style.display = 'none';
+        });
+
+        nutLuuCotCongThuc.addEventListener('click', async () => {
+            const tenCot = oTenCotCongThuc.value.trim();
+            const congThuc = oBieuThucCongThuc.value.trim();
+
+            if (!tenCot || !congThuc) {
+                alert("Vui lòng nhập tên cột và công thức!");
+                return;
+            }
+
+            if (tatCaCotExcel.includes(tenCot)) {
+                alert("Tên cột này đã tồn tại!");
+                return;
+            }
+
+            let loiXayRa = false;
+            // Sap xep ten cot tu dai den ngan de tranh loi thay the chuoi con (vi du: Toan va Toan Nang Cao)
+            let cotSapXep = [...tatCaCotExcel].sort((a, b) => b.length - a.length);
+
+            let danhSachSuaMoi = duLieuGoc.map(hang => {
+                let hangMoi = { ...hang };
+                let chuoiToanHoc = congThuc;
+                
+                try {
+                    cotSapXep.forEach(cot => {
+                        let giaTriLay = hangMoi[cot] !== undefined ? hangMoi[cot] : 0;
+                        if(isNaN(giaTriLay) || giaTriLay === "") giaTriLay = 0;
+                        chuoiToanHoc = chuoiToanHoc.split(cot).join(giaTriLay);
+                    });
+                    
+                    let ketQuaTinh = eval(chuoiToanHoc);
+                    if (!isFinite(ketQuaTinh)) ketQuaTinh = 0;
+                    
+                    hangMoi[tenCot] = ketQuaTinh;
+                } catch(e) {
+                    hangMoi[tenCot] = "Lỗi";
+                    loiXayRa = true;
+                }
+                return hangMoi;
+            });
+
+            if (loiXayRa) {
+                if(!confirm("Có lỗi phát sinh khi tính toán ở một số dòng (có thể do sai công thức). Bạn có chắc chắn muốn lưu?")) {
+                    return;
+                }
+            }
+
+            tatCaCotExcel.push(tenCot);
+            duLieuGoc = danhSachSuaMoi;
+            cauHinhCot[tenCot] = { hienThi: true, choSua: false, laCotAn: false };
+
+            const danhSachLuuDayLen = duLieuGoc.map(hang => {
+                let obj = { ...hang };
+                delete obj._viTriGoc;
+                return obj;
+            });
+
+            try {
+                await set(duongDanDuLieu, { thuTu: tatCaCotExcel, danhSach: danhSachLuuDayLen });
+                await set(duongDanCaiDatCot, cauHinhCot);
+                
+                alert("Thêm cột công thức thành công!");
+                lopPhu.style.display = 'none';
+                khungThemCotCongThuc.style.display = 'none';
+            } catch (loi) {
+                console.error(loi);
+                alert("Lỗi khi đẩy dữ liệu lên hệ thống!");
+            }
+        });
+
         nutCaiDatDemNguoc.addEventListener('click', () => {
             document.getElementById('oTrangThaiDemNguoc').checked = duLieuDemNguoc.trangThai || false;
             document.getElementById('oMoTaTrenDemNguoc').value = duLieuDemNguoc.moTaTren || "CÒN LẠI";
@@ -1406,5 +1520,3 @@
     </script>
 </body>
 </html>
-
-```
