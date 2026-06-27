@@ -998,11 +998,18 @@
                 const theChoSua = document.querySelector(`.chk-cho-sua[data-cot="${cot}"]`);
                 const theCotAn = document.querySelector(`.rad-cot-an[data-cot="${cot}"]`);
 
-                cauHinhMoiLuu[cot] = {
+                let cotMoiLuu = {
                     hienThi: theHienThi ? theHienThi.checked : false,
                     choSua: theChoSua ? theChoSua.checked : false,
                     laCotAn: theCotAn ? theCotAn.checked : false
                 };
+                
+                // Bao ton cau hinh cong thuc neu co
+                if (cauHinhCot[cot] && cauHinhCot[cot].congThuc) {
+                    cotMoiLuu.congThuc = cauHinhCot[cot].congThuc;
+                }
+
+                cauHinhMoiLuu[cot] = cotMoiLuu;
 
                 if (cauHinhMoiLuu[cot].laCotAn) coCotAn = true;
             });
@@ -1057,7 +1064,7 @@
             }
 
             let loiXayRa = false;
-            // Sap xep ten cot tu dai den ngan de tranh loi thay the chuoi con (vi du: Toan va Toan Nang Cao)
+            // Sap xep ten cot tu dai den ngan de tranh loi thay the chuoi con
             let cotSapXep = [...tatCaCotExcel].sort((a, b) => b.length - a.length);
 
             let danhSachSuaMoi = duLieuGoc.map(hang => {
@@ -1090,7 +1097,8 @@
 
             tatCaCotExcel.push(tenCot);
             duLieuGoc = danhSachSuaMoi;
-            cauHinhCot[tenCot] = { hienThi: true, choSua: false, laCotAn: false };
+            // Luu them chuoi cong thuc vao cau hinh cot
+            cauHinhCot[tenCot] = { hienThi: true, choSua: false, laCotAn: false, congThuc: congThuc };
 
             const danhSachLuuDayLen = duLieuGoc.map(hang => {
                 let obj = { ...hang };
@@ -1496,6 +1504,42 @@
             });
 
             if (coThayDoi) {
+                // TIẾN HÀNH TÍNH TOÁN LẠI CÁC CỘT CÔNG THỨC
+                let cotSapXepCT = [...tatCaCotExcel].sort((a, b) => b.length - a.length);
+                
+                tatCaCotExcel.forEach(cotCT => {
+                    if (cauHinhCot[cotCT] && cauHinhCot[cotCT].congThuc) {
+                        let chuoiToanHoc = cauHinhCot[cotCT].congThuc;
+                        try {
+                            cotSapXepCT.forEach(cotThanhPhan => {
+                                if (cotThanhPhan !== cotCT) {
+                                    let gTriGoc = duLieuHangDangSua[cotThanhPhan] !== undefined ? duLieuHangDangSua[cotThanhPhan] : 0;
+                                    let gTriSua = duLieuHangDangSua._thongTinSua[cotThanhPhan] !== undefined ? duLieuHangDangSua._thongTinSua[cotThanhPhan] : gTriGoc;
+                                    
+                                    let gTriLay = gTriSua;
+                                    if(isNaN(gTriLay) || gTriLay === "") gTriLay = 0;
+                                    
+                                    chuoiToanHoc = chuoiToanHoc.split(cotThanhPhan).join(gTriLay);
+                                }
+                            });
+                            
+                            let ketQuaTinh = eval(chuoiToanHoc);
+                            if (!isFinite(ketQuaTinh)) ketQuaTinh = 0;
+                            
+                            let ketQuaGoc = duLieuHangDangSua[cotCT] !== undefined ? duLieuHangDangSua[cotCT] : "";
+                            
+                            // Kiem tra gia tri moi xem co can dua vao _thongTinSua khong
+                            if (String(ketQuaTinh) !== String(ketQuaGoc)) {
+                                duLieuHangDangSua._thongTinSua[cotCT] = ketQuaTinh;
+                            } else if (duLieuHangDangSua._thongTinSua[cotCT] !== undefined) {
+                                delete duLieuHangDangSua._thongTinSua[cotCT];
+                            }
+                        } catch(e) {
+                            duLieuHangDangSua._thongTinSua[cotCT] = "Lỗi";
+                        }
+                    }
+                });
+
                 const viTriGoc = duLieuHangDangSua._viTriGoc;
                 const duongDanHangSua = laRoot ? 
                     ref(coSoDuLieu, `danh_sach_hoc_sinh/danhSach/${viTriGoc}/_thongTinSua`) :
