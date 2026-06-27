@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
+<!DOCTYPE html><html lang="vi"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SỞ GD & ĐT ĐẮK LẮK - TRƯỜNG THPT SỐ 1 TRẦN PHÚ</title>
@@ -169,9 +167,7 @@
         .nut-xoa-truong:hover {
             background-color: #c82333 !important;
         }
-    </style>
-</head>
-<body>
+    </style></head><body>
     <div class="khung-top-right">
         <button id="nutDangNhap" class="nut-phu">Đăng nhập quản lý</button>
     </div>
@@ -218,7 +214,7 @@
             <button id="nutTaiLen">Nạp dữ liệu Excel</button>
             <button id="nutTaiDuLieu" class="nut-thanh-cong">Tải dữ liệu mới</button>
             <button id="nutCaiDatCot" class="nut-phu">Cài đặt cột</button>
-            <button id="nutThemCotCongThuc" class="nut-thanh-cong">Thêm cột công thức</button>
+            <button id="nutThemCotCongThuc" class="nut-thanh-cong">Cài đặt công thức cột</button>
             <button id="nutDoiTieuDe" class="nut-phu">Đổi tiêu đề 1, 2, 3</button>
             <button id="nutDoiLinkThongBao" class="nut-phu">Đổi nội dung & link thông báo</button>
             <button id="nutCaiDatDemNguoc" class="nut-phu">Cài đặt đếm ngược</button>
@@ -268,13 +264,13 @@
     </div>
 
     <div id="khungThemCotCongThuc" class="khung-modal" style="min-width: 450px;">
-        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Thêm cột công thức</h3>
-        <p style="font-size: 13px; color: #555;">Tạo cột mới tính toán từ các cột hiện có. Hỗ trợ các phép toán: +, -, *, /, (, ).</p>
+        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Cài đặt công thức cột</h3>
+        <p style="font-size: 13px; color: #555;">Tạo cột mới hoặc gán công thức cho cột hiện có để tự động tính toán. Hỗ trợ các phép toán: +, -, *, /, (, ).</p>
         <p id="goiYCotCongThuc" style="font-size: 13px; color: #d9534f; margin-bottom: 15px; word-wrap: break-word;"></p>
-        <label style="font-weight: bold;">Tên cột mới:</label>
-        <input type="text" id="oTenCotCongThuc" class="nhap-sua" placeholder="VD: Tong Diem">
+        <label style="font-weight: bold;">Tên cột (Nhập tên tạo mới hoặc ghi đè cột đã có):</label>
+        <input type="text" id="oTenCotCongThuc" class="nhap-sua" placeholder="VD: Diem xet TN">
         <label style="font-weight: bold;">Công thức (Nhập ĐÚNG tên cột có trong danh sách trên):</label>
-        <textarea id="oBieuThucCongThuc" class="nhap-sua" placeholder="VD: Toan + Van * 2"></textarea>
+        <textarea id="oBieuThucCongThuc" class="nhap-sua" placeholder="VD: (Toan + Van + Tc1 + Tc2)/4"></textarea>
         <div style="text-align: right; margin-top: 15px;">
             <button id="nutLuuCotCongThuc" class="nut-thanh-cong">Lưu và tính toán</button>
             <button id="nutDongCotCongThuc" class="nut-phu">Hủy</button>
@@ -426,7 +422,7 @@
         const tieuDe3 = document.getElementById('tieuDe3');
         const nutMoTatSua = document.getElementById('nutMoTatSua');
 
-        // Giao dien nut chuc nang Them Cot Cong Thuc
+        // Giao dien nut chuc nang Cai dat Cong Thuc
         const khungThemCotCongThuc = document.getElementById('khungThemCotCongThuc');
         const nutDongCotCongThuc = document.getElementById('nutDongCotCongThuc');
         const nutLuuCotCongThuc = document.getElementById('nutLuuCotCongThuc');
@@ -616,7 +612,7 @@
             cauHinhCot = cauHinhThucTe;
 
             taoKhungBang();
-            capNhatThanBang([], true);
+            locDuLieu(); // ĐÃ CẬP NHẬT: Thay thế capNhatThanBang([], true) để dữ liệu tự lọc lại sau khi vẽ lại bảng
         }
 
         onValue(duongDanLinkThongBao, (snapshot) => {
@@ -1031,7 +1027,7 @@
                 });
         });
 
-        // Xu ly chuc nang Them Cot Cong Thuc
+        // Xu ly chuc nang Cai dat Cong Thuc Cot
         nutThemCotCongThuc.addEventListener('click', () => {
             if (tatCaCotExcel.length === 0) {
                 alert("Chưa có dữ liệu bảng! Vui lòng nạp file Excel trước.");
@@ -1058,11 +1054,6 @@
                 return;
             }
 
-            if (tatCaCotExcel.includes(tenCot)) {
-                alert("Tên cột này đã tồn tại!");
-                return;
-            }
-
             let loiXayRa = false;
             // Sap xep ten cot tu dai den ngan de tranh loi thay the chuoi con
             let cotSapXep = [...tatCaCotExcel].sort((a, b) => b.length - a.length);
@@ -1073,32 +1064,54 @@
                 
                 try {
                     cotSapXep.forEach(cot => {
-                        let giaTriLay = hangMoi[cot] !== undefined ? hangMoi[cot] : 0;
-                        if(isNaN(giaTriLay) || giaTriLay === "") giaTriLay = 0;
-                        chuoiToanHoc = chuoiToanHoc.split(cot).join(giaTriLay);
+                        if (cot !== tenCot) { // Khong tu thay the chinh no
+                            let giaTriLay = hangMoi[cot] !== undefined ? hangMoi[cot] : 0;
+                            let parsedNum = parseFloat(String(giaTriLay).replace(',', '.'));
+                            if (isNaN(parsedNum)) parsedNum = 0;
+                            // Boc gia tri trong dau ngoac de dam bao an toan phep toan am duong
+                            chuoiToanHoc = chuoiToanHoc.split(cot).join(`(${parsedNum})`);
+                        }
                     });
                     
                     let ketQuaTinh = eval(chuoiToanHoc);
-                    if (!isFinite(ketQuaTinh)) ketQuaTinh = 0;
+                    if (isFinite(ketQuaTinh)) {
+                        ketQuaTinh = Math.round(ketQuaTinh * 1000) / 1000;
+                    } else {
+                        ketQuaTinh = 0;
+                    }
                     
                     hangMoi[tenCot] = ketQuaTinh;
+
+                    // Xoa du lieu chinh sua thu cong cua cot nay (neu co) vi da dung cong thuc
+                    if (hangMoi._thongTinSua && hangMoi._thongTinSua[tenCot] !== undefined) {
+                        delete hangMoi._thongTinSua[tenCot];
+                    }
                 } catch(e) {
-                    hangMoi[tenCot] = "Lỗi";
+                    hangMoi[tenCot] = "Lỗi CT";
                     loiXayRa = true;
                 }
                 return hangMoi;
             });
 
             if (loiXayRa) {
-                if(!confirm("Có lỗi phát sinh khi tính toán ở một số dòng (có thể do sai công thức). Bạn có chắc chắn muốn lưu?")) {
+                if(!confirm("Có lỗi phát sinh khi tính toán ở một số dòng (có thể do sai công thức hoặc tên biến). Bạn có chắc chắn muốn lưu?")) {
                     return;
                 }
             }
 
-            tatCaCotExcel.push(tenCot);
+            if (!tatCaCotExcel.includes(tenCot)) {
+                tatCaCotExcel.push(tenCot);
+            }
+            
             duLieuGoc = danhSachSuaMoi;
+            
             // Luu them chuoi cong thuc vao cau hinh cot
-            cauHinhCot[tenCot] = { hienThi: true, choSua: false, laCotAn: false, congThuc: congThuc };
+            if (cauHinhCot[tenCot]) {
+                cauHinhCot[tenCot].congThuc = congThuc;
+                cauHinhCot[tenCot].choSua = false; // Cot cong thuc khong the sua thu cong
+            } else {
+                cauHinhCot[tenCot] = { hienThi: true, choSua: false, laCotAn: false, congThuc: congThuc };
+            }
 
             const danhSachLuuDayLen = duLieuGoc.map(hang => {
                 let obj = { ...hang };
@@ -1110,7 +1123,7 @@
                 await set(duongDanDuLieu, { thuTu: tatCaCotExcel, danhSach: danhSachLuuDayLen });
                 await set(duongDanCaiDatCot, cauHinhCot);
                 
-                alert("Thêm cột công thức thành công!");
+                alert("Cài đặt cột công thức thành công!");
                 lopPhu.style.display = 'none';
                 khungThemCotCongThuc.style.display = 'none';
             } catch (loi) {
@@ -1335,6 +1348,15 @@
         });
 
         function taoKhungBang() {
+            // ĐÃ CẬP NHẬT: Lưu lại giá trị của các ô lọc hiện tại trước khi tạo lại bảng
+            let giaTriLocHienTai = {};
+            const cacOLocCu = document.querySelectorAll('.oLoc');
+            cacOLocCu.forEach(oNhap => {
+                if (oNhap.value.trim() !== "") {
+                    giaTriLocHienTai[oNhap.dataset.cot] = oNhap.value;
+                }
+            });
+
             let html = '<table><thead><tr>';
             
             cacCotHienThi.forEach(cot => {
@@ -1351,6 +1373,10 @@
 
             const cacOLoc = document.querySelectorAll('.oLoc');
             cacOLoc.forEach(oNhap => {
+                // ĐÃ CẬP NHẬT: Điền lại các giá trị lọc nếu đã được lưu từ trước
+                if (giaTriLocHienTai[oNhap.dataset.cot]) {
+                    oNhap.value = giaTriLocHienTai[oNhap.dataset.cot];
+                }
                 oNhap.addEventListener('input', locDuLieu);
             });
         }
@@ -1516,15 +1542,21 @@
                                     let gTriGoc = duLieuHangDangSua[cotThanhPhan] !== undefined ? duLieuHangDangSua[cotThanhPhan] : 0;
                                     let gTriSua = duLieuHangDangSua._thongTinSua[cotThanhPhan] !== undefined ? duLieuHangDangSua._thongTinSua[cotThanhPhan] : gTriGoc;
                                     
-                                    let gTriLay = gTriSua;
-                                    if(isNaN(gTriLay) || gTriLay === "") gTriLay = 0;
+                                    // Chuan hoa so: Thay thế dau phay bang dau cham (neu co) de dam bao toan hoc
+                                    let parsedNum = parseFloat(String(gTriSua).replace(',', '.'));
+                                    if(isNaN(parsedNum)) parsedNum = 0;
                                     
-                                    chuoiToanHoc = chuoiToanHoc.split(cotThanhPhan).join(gTriLay);
+                                    // Boc so trong dau () giup the hien dung bieu thuc am/duong
+                                    chuoiToanHoc = chuoiToanHoc.split(cotThanhPhan).join(`(${parsedNum})`);
                                 }
                             });
                             
                             let ketQuaTinh = eval(chuoiToanHoc);
-                            if (!isFinite(ketQuaTinh)) ketQuaTinh = 0;
+                            if (isFinite(ketQuaTinh)) {
+                                ketQuaTinh = Math.round(ketQuaTinh * 1000) / 1000;
+                            } else {
+                                ketQuaTinh = 0;
+                            }
                             
                             let ketQuaGoc = duLieuHangDangSua[cotCT] !== undefined ? duLieuHangDangSua[cotCT] : "";
                             
@@ -1535,7 +1567,7 @@
                                 delete duLieuHangDangSua._thongTinSua[cotCT];
                             }
                         } catch(e) {
-                            duLieuHangDangSua._thongTinSua[cotCT] = "Lỗi";
+                            duLieuHangDangSua._thongTinSua[cotCT] = "Lỗi CT";
                         }
                     }
                 });
@@ -1561,6 +1593,4 @@
                 document.getElementById('khungSuaDuLieu').style.display = 'none';
             }
         });
-    </script>
-</body>
-</html>
+    </script></body></html>
