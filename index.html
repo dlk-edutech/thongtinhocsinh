@@ -335,7 +335,7 @@
     </div>
 
     <div id="khungSuaTruongInfo" class="khung-modal" style="min-width: 350px;">
-        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Sửa thông tin trường</h3>
+        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Sửa thôngريق tin trường</h3>
         <label style="font-weight: bold;">Tên trường (tiền tố):</label>
         <input type="text" id="oSuaTienTo" class="nhap-sua">
         <label style="font-weight: bold;">Mã số:</label>
@@ -422,7 +422,6 @@
         const tieuDe3 = document.getElementById('tieuDe3');
         const nutMoTatSua = document.getElementById('nutMoTatSua');
 
-        // Giao dien nut chuc nang Cai dat Cong Thuc
         const khungThemCotCongThuc = document.getElementById('khungThemCotCongThuc');
         const nutDongCotCongThuc = document.getElementById('nutDongCotCongThuc');
         const nutLuuCotCongThuc = document.getElementById('nutLuuCotCongThuc');
@@ -612,7 +611,7 @@
             cauHinhCot = cauHinhThucTe;
 
             taoKhungBang();
-            locDuLieu(); // ĐÃ CẬP NHẬT: Thay thế capNhatThanBang([], true) để dữ liệu tự lọc lại sau khi vẽ lại bảng
+            locDuLieu(); 
         }
 
         onValue(duongDanLinkThongBao, (snapshot) => {
@@ -1047,7 +1046,8 @@
 
         nutLuuCotCongThuc.addEventListener('click', async () => {
             const tenCot = oTenCotCongThuc.value.trim();
-            const congThuc = oBieuThucCongThuc.value.trim();
+            // ĐÃ CẬP NHẬT: Thay thế dấu phẩy thành dấu chấm trong công thức để hỗ trợ gõ dạng 0,5
+            const congThuc = oBieuThucCongThuc.value.trim().replace(/,/g, '.');
 
             if (!tenCot || !congThuc) {
                 alert("Vui lòng nhập tên cột và công thức!");
@@ -1066,8 +1066,12 @@
                     cotSapXep.forEach(cot => {
                         if (cot !== tenCot) { // Khong tu thay the chinh no
                             let giaTriLay = hangMoi[cot] !== undefined ? hangMoi[cot] : 0;
-                            let parsedNum = parseFloat(String(giaTriLay).replace(',', '.'));
+                            
+                            // ĐÃ CẬP NHẬT: Xóa khoảng trắng, biến đổi phẩy thành chấm để linh hoạt mọi loại dữ liệu nhập
+                            let stringVal = String(giaTriLay).replace(/\s/g, '').replace(/,/g, '.');
+                            let parsedNum = parseFloat(stringVal);
                             if (isNaN(parsedNum)) parsedNum = 0;
+                            
                             // Boc gia tri trong dau ngoac de dam bao an toan phep toan am duong
                             chuoiToanHoc = chuoiToanHoc.split(cot).join(`(${parsedNum})`);
                         }
@@ -1348,7 +1352,6 @@
         });
 
         function taoKhungBang() {
-            // ĐÃ CẬP NHẬT: Lưu lại giá trị của các ô lọc hiện tại trước khi tạo lại bảng
             let giaTriLocHienTai = {};
             const cacOLocCu = document.querySelectorAll('.oLoc');
             cacOLocCu.forEach(oNhap => {
@@ -1373,7 +1376,6 @@
 
             const cacOLoc = document.querySelectorAll('.oLoc');
             cacOLoc.forEach(oNhap => {
-                // ĐÃ CẬP NHẬT: Điền lại các giá trị lọc nếu đã được lưu từ trước
                 if (giaTriLocHienTai[oNhap.dataset.cot]) {
                     oNhap.value = giaTriLocHienTai[oNhap.dataset.cot];
                 }
@@ -1535,15 +1537,17 @@
                 
                 tatCaCotExcel.forEach(cotCT => {
                     if (cauHinhCot[cotCT] && cauHinhCot[cotCT].congThuc) {
-                        let chuoiToanHoc = cauHinhCot[cotCT].congThuc;
+                        // ĐÃ CẬP NHẬT: Thay thế dấu phẩy thành chấm ngay cả trong công thức gốc để loại bỏ mọi lỗi phát sinh
+                        let chuoiToanHoc = cauHinhCot[cotCT].congThuc.replace(/,/g, '.'); 
                         try {
                             cotSapXepCT.forEach(cotThanhPhan => {
                                 if (cotThanhPhan !== cotCT) {
                                     let gTriGoc = duLieuHangDangSua[cotThanhPhan] !== undefined ? duLieuHangDangSua[cotThanhPhan] : 0;
                                     let gTriSua = duLieuHangDangSua._thongTinSua[cotThanhPhan] !== undefined ? duLieuHangDangSua._thongTinSua[cotThanhPhan] : gTriGoc;
                                     
-                                    // Chuan hoa so: Thay thế dau phay bang dau cham (neu co) de dam bao toan hoc
-                                    let parsedNum = parseFloat(String(gTriSua).replace(',', '.'));
+                                    // ĐÃ CẬP NHẬT: Loại bỏ khoảng trắng và chuyển phẩy thành chấm
+                                    let stringVal = String(gTriSua).replace(/\s/g, '').replace(/,/g, '.');
+                                    let parsedNum = parseFloat(stringVal);
                                     if(isNaN(parsedNum)) parsedNum = 0;
                                     
                                     // Boc so trong dau () giup the hien dung bieu thuc am/duong
@@ -1560,7 +1564,6 @@
                             
                             let ketQuaGoc = duLieuHangDangSua[cotCT] !== undefined ? duLieuHangDangSua[cotCT] : "";
                             
-                            // Kiem tra gia tri moi xem co can dua vao _thongTinSua khong
                             if (String(ketQuaTinh) !== String(ketQuaGoc)) {
                                 duLieuHangDangSua._thongTinSua[cotCT] = ketQuaTinh;
                             } else if (duLieuHangDangSua._thongTinSua[cotCT] !== undefined) {
