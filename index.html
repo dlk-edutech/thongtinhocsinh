@@ -1,1599 +1,1417 @@
-<!DOCTYPE html><html lang="vi"><head>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SỞ GD & ĐT ĐẮK LẮK - TRƯỜNG THPT SỐ 1 TRẦN PHÚ</title>
+    <title>Hệ Thống Quản Lý Thông Tin Học Sinh - THPT Số 1 Trần Phú</title>
     
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- SheetJS cho Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f9f9f9;
-            display: flex;
-            flex-direction: column;
-            min-height: 95vh;
-            position: relative;
-        }
-        .khung-top-right {
-            text-align: right;
-            margin-bottom: 10px;
-        }
-        .phan-tieu-de {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .phan-tieu-de h2 {
-            margin: 5px 0;
-            color: #333;
-        }
-        .phan-tieu-de h3 {
-            margin: 10px 0 0 0;
-            color: #007bff;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            text-align: left;
-        }
-        .khung-dieukhien {
-            background-color: #fff;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        button {
-            padding: 8px 15px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 5px;
-            margin-bottom: 5px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .nut-phu {
-            background-color: #6c757d;
-        }
-        .nut-phu:hover {
-            background-color: #5a6268;
-        }
-        .nut-thanh-cong {
-            background-color: #28a745;
-        }
-        .nut-thanh-cong:hover {
-            background-color: #218838;
-        }
-        .nut-canh-bao {
-            background-color: #dc3545;
-        }
-        .nut-canh-bao:hover {
-            background-color: #c82333;
-        }
-        .nut-sua-dong {
-            background-color: #ffc107;
-            color: #000;
-            padding: 5px 10px;
-            font-size: 13px;
-            margin: 0;
-        }
-        .nut-sua-dong:hover {
-            background-color: #e0a800;
-        }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            background-color: #fff;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        .oLoc {
-            width: 100%;
-            padding: 5px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-        }
-        .noi-dung-chinh {
-            flex: 1;
-            overflow-x: auto;
-        }
-        .phan-ban-quyen {
-            text-align: center;
-            margin-top: 30px;
-            padding: 15px;
-            font-size: 14px;
-            color: #555;
-            border-top: 1px solid #ddd;
-        }
-        .o-da-sua {
-            background-color: #fff3cd !important;
-            color: #856404;
-            font-weight: bold;
-        }
-        .lop-phu {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-        }
-        .khung-modal {
-            display: none; 
-            position: fixed; 
-            top: 50%; left: 50%; 
-            transform: translate(-50%, -50%); 
-            background: white; 
-            padding: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
-            z-index: 1000; 
-            max-height: 85vh; 
-            overflow-y: auto;
-            min-width: 350px;
-        }
-        .nhap-sua {
-            width: 100%; 
-            padding: 8px; 
-            margin-top: 5px; 
-            margin-bottom: 15px; 
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        textarea.nhap-sua {
-            resize: vertical;
-            min-height: 80px;
-        }
-        .o-nhap-root {
-            padding: 8px;
-            margin-right: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .nut-xoa-truong {
-            background-color: #dc3545 !important;
-            color: white !important;
-        }
-        .nut-xoa-truong:hover {
-            background-color: #c82333 !important;
-        }
-    </style></head><body>
-    <div class="khung-top-right">
-        <button id="nutDangNhap" class="nut-phu">Đăng nhập quản lý</button>
-    </div>
-
-    <div class="phan-tieu-de">
-        <h2 id="tieuDe1">SỞ GD & ĐT ĐẮK LẮK</h2>
-        <h2 id="tieuDe2">TRƯỜNG THPT SỐ 1 TRẦN PHÚ</h2>
-        <h3 id="tieuDe3">Hệ Thống Tìm Kiếm Thông Tin Học Sinh</h3>
-    </div>
-
-    <div id="khungThongBaoLink" style="margin-bottom: 20px; display: none;">
-        <div style="padding: 12px 20px; background-color: #e9ecef; border-left: 5px solid #17a2b8; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: left;">
-            <div id="noiDungThongBaoLink" style="font-size: 15px; color: #333; white-space: pre-wrap; word-wrap: break-word;"></div>
-        </div>
-    </div>
-
-    <div id="khungHienThiDemNguoc" style="margin-bottom: 20px; display: none; text-align: center;">
-        <div style="display: inline-block; padding: 15px 30px; background-color: #fff3cd; border: 2px solid #ffeeba; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-            <div id="textMoTaTrenDemNguoc" style="font-size: 18px; color: #856404; font-weight: bold; margin-bottom: 5px; text-transform: uppercase;"></div>
-            <div id="textThoiGianDemNguoc" style="font-size: 24px; color: #dc3545; font-weight: bold; letter-spacing: 1px; margin-bottom: 5px;"></div>
-            <div id="textMoTaDuoiDemNguoc" style="font-size: 18px; color: #856404; font-weight: bold; text-transform: uppercase;"></div>
-        </div>
-    </div>
-
-    <div id="khungRootAdmin" style="display: none;">
-        <h2 style="color: #d9534f; border-bottom: 2px solid #ddd; padding-bottom: 10px;">Quản Trị Hệ Thống (Root Admin)</h2>
-        
-        <div class="khung-dieukhien">
-            <h3>Tạo tài khoản trường mới</h3>
-            <input type="text" id="oTienToTruong" class="o-nhap-root" placeholder="Tên trường (vd: abc)">
-            <input type="text" id="oMaSoTruong" class="o-nhap-root" placeholder="Mã số (vd: 1234)">
-            <button id="nutTaoTruongMoi" class="nut-thanh-cong">Tạo Mới</button>
-        </div>
-
-        <div class="khung-dieukhien">
-            <h3>Danh sách các trường đang hoạt động</h3>
-            <div id="bangDanhSachTruong"></div>
-        </div>
-    </div>
-
-    <div class="noi-dung-chinh">
-        <div id="khungQuanLy" class="khung-dieukhien" style="display: none;">
-            <input type="file" id="fileNhap" accept=".xlsx, .xls">
-            <button id="nutTaiLen">Nạp dữ liệu Excel</button>
-            <button id="nutTaiDuLieu" class="nut-thanh-cong">Tải dữ liệu mới</button>
-            <button id="nutCaiDatCot" class="nut-phu">Cài đặt cột</button>
-            <button id="nutThemCotCongThuc" class="nut-thanh-cong">Cài đặt công thức cột</button>
-            <button id="nutDoiTieuDe" class="nut-phu">Đổi tiêu đề 1, 2, 3</button>
-            <button id="nutDoiLinkThongBao" class="nut-phu">Đổi nội dung & link thông báo</button>
-            <button id="nutCaiDatDemNguoc" class="nut-phu">Cài đặt đếm ngược</button>
-            <button id="nutDoiMaSo" class="nut-phu" style="display: none;">Đổi mã số trường</button>
-            <button id="nutMoTatSua" class="nut-phu">Mở quyền sửa</button>
-            <span id="trangThai" style="margin-left: 10px; color: green; font-weight: bold;"></span>
-        </div>
-
-        <div id="khungBang"></div>
-    </div>
-
-    <div id="lopPhuModal" class="lop-phu"></div>
+    <!-- Firebase V8 cho Cloud Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
-    <div id="khungNhapBaoMat" class="khung-modal" style="min-width: 300px;">
-        <h3 id="tieuDeBaoMat" style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Đăng nhập hệ thống</h3>
-        <p id="moTaDangNhap" style="font-size: 14px; color: #555; margin-bottom: 10px;">Nhập thông tin xác thực</p>
-        <div style="position: relative; width: 100%; margin-bottom: 15px; margin-top: 10px;">
-            <input type="password" id="oNhapBaoMat" class="nhap-sua" style="margin-bottom: 0; padding-right: 60px;">
-            <button id="nutAnHienBaoMat" type="button" class="nut-phu" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); margin: 0; padding: 4px 8px; font-size: 12px;">Hiện</button>
-        </div>
-        <div style="text-align: right;">
-            <button id="nutXacNhanBaoMat" class="nut-thanh-cong">Xác nhận</button>
-            <button id="nutHuyBaoMat" class="nut-phu">Hủy</button>
-        </div>
-    </div>
-
-    <div id="khungCaiDatCot" class="khung-modal" style="min-width: 550px;">
-        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Cài đặt hiển thị và sửa cột</h3>
-        <p style="font-size: 13px; color: #555;">Tùy chỉnh cột nào hiển thị trên bảng, cột nào cho phép học sinh sửa và cột nào dùng làm mã bảo mật (chọn 1).</p>
-        <div style="max-height: 400px; overflow-y: auto;">
-            <table>
-                <thead style="position: sticky; top: 0; background: #f2f2f2; z-index: 1;">
-                    <tr>
-                        <th>Tên cột</th>
-                        <th style="text-align:center;">Hiển thị</th>
-                        <th style="text-align:center;">Cho sửa</th>
-                        <th style="text-align:center;">Cột bảo mật (Ẩn)</th>
-                    </tr>
-                </thead>
-                <tbody id="noiDungCaiDatCot"></tbody>
-            </table>
-        </div>
-        <div style="text-align: right; margin-top: 15px;">
-            <button id="nutLuuCaiDatCot" class="nut-thanh-cong">Lưu cài đặt</button>
-            <button id="nutDongCaiDatCot" class="nut-phu">Hủy</button>
-        </div>
-    </div>
-
-    <div id="khungThemCotCongThuc" class="khung-modal" style="min-width: 450px;">
-        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Cài đặt công thức cột</h3>
-        <p style="font-size: 13px; color: #555;">Tạo cột mới hoặc gán công thức cho cột hiện có để tự động tính toán. Hỗ trợ các phép toán: +, -, *, /, (, ).</p>
-        <p id="goiYCotCongThuc" style="font-size: 13px; color: #d9534f; margin-bottom: 15px; word-wrap: break-word;"></p>
-        <label style="font-weight: bold;">Tên cột (Nhập tên tạo mới hoặc ghi đè cột đã có):</label>
-        <input type="text" id="oTenCotCongThuc" class="nhap-sua" placeholder="VD: Diem xet TN">
-        <label style="font-weight: bold;">Công thức (Nhập ĐÚNG tên cột có trong danh sách trên):</label>
-        <textarea id="oBieuThucCongThuc" class="nhap-sua" placeholder="VD: (Toan + Van + Tc1 + Tc2)/4"></textarea>
-        <div style="text-align: right; margin-top: 15px;">
-            <button id="nutLuuCotCongThuc" class="nut-thanh-cong">Lưu và tính toán</button>
-            <button id="nutDongCotCongThuc" class="nut-phu">Hủy</button>
-        </div>
-    </div>
-
-    <div id="khungSuaDemNguoc" class="khung-modal" style="min-width: 400px;">
-        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Cài đặt đếm ngược thời gian</h3>
-        <div style="margin-bottom: 15px;">
-            <label style="font-weight: bold; cursor: pointer;">
-                <input type="checkbox" id="oTrangThaiDemNguoc" style="margin-right: 5px; transform: scale(1.2);"> Kích hoạt chức năng đếm ngược
-            </label>
-        </div>
-        <label style="font-weight: bold;">Dòng chữ trên (Ví dụ: CÒN LẠI):</label>
-        <input type="text" id="oMoTaTrenDemNguoc" class="nhap-sua" placeholder="Nhập nội dung dòng 1...">
-        <label style="font-weight: bold;">Thời gian đích đến (Dòng 2):</label>
-        <input type="datetime-local" id="oThoiGianDemNguoc" class="nhap-sua">
-        <label style="font-weight: bold;">Dòng chữ dưới (Ví dụ: LÀ ĐẾN NGÀY ABC):</label>
-        <input type="text" id="oMoTaDuoiDemNguoc" class="nhap-sua" placeholder="Nhập nội dung dòng 3...">
-        <div style="text-align: right; margin-top: 15px;">
-            <button id="nutLuuDemNguoc" class="nut-thanh-cong">Lưu thay đổi</button>
-            <button id="nutDongSuaDemNguoc" class="nut-phu">Hủy</button>
-        </div>
-    </div>
-
-    <div id="khungSuaTieuDe" class="khung-modal" style="min-width: 400px;">
-        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Sửa tiêu đề</h3>
-        <label style="font-weight: bold;">Tiêu đề dòng 1:</label>
-        <input type="text" id="oNhapDong1" class="nhap-sua">
-        <label style="font-weight: bold;">Tiêu đề dòng 2:</label>
-        <input type="text" id="oNhapDong2" class="nhap-sua">
-        <label style="font-weight: bold;">Tiêu đề dòng 3 (Hỗ trợ nhiều dòng):</label>
-        <textarea id="oNhapDong3" class="nhap-sua"></textarea>
-        <div style="text-align: right; margin-top: 15px;">
-            <button id="nutLuuTieuDe" class="nut-thanh-cong">Lưu thay đổi</button>
-            <button id="nutDongSuaTieuDe" class="nut-phu">Hủy</button>
-        </div>
-    </div>
-
-    <div id="khungSuaLinkThongBao" class="khung-modal" style="min-width: 400px;">
-        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Sửa nội dung & link thông báo</h3>
-        <label style="font-weight: bold;">Nội dung thông báo (đoạn text):</label>
-        <textarea id="oNhapNoiDungLinkThongBao" class="nhap-sua" placeholder="Ví dụ: Lịch tập trung đội tuyển..."></textarea>
-        <label style="font-weight: bold;">Đường dẫn đính kèm (URL):</label>
-        <input type="text" id="oNhapUrlLinkThongBao" class="nhap-sua" placeholder="VD: https://zalo.me/...">
-        <div style="text-align: right; margin-top: 15px;">
-            <button id="nutLuuLinkThongBao" class="nut-thanh-cong">Lưu thay đổi</button>
-            <button id="nutDongSuaLinkThongBao" class="nut-phu">Hủy</button>
-        </div>
-    </div>
-
-    <div id="khungSuaMaSo" class="khung-modal" style="min-width: 300px;">
-        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Đổi mã số trường</h3>
-        <p style="margin-bottom: 5px;">Tiền tố của trường: <strong id="hienThiTienTo" style="color:#d9534f; font-size:16px;"></strong></p>
-        <p style="font-size: 12px; color: #777; margin-bottom: 15px;">Mã đăng nhập mới sẽ kết hợp tiền tố này và mã số bạn nhập bên dưới.</p>
-        <label style="font-weight: bold;">Mã số mới:</label>
-        <input type="text" id="oNhapMaSoMoi" class="nhap-sua" placeholder="Ví dụ: 9999">
-        <div style="text-align: right; margin-top: 15px;">
-            <button id="nutLuuMaSo" class="nut-thanh-cong">Lưu thay đổi</button>
-            <button id="nutDongSuaMaSo" class="nut-phu">Hủy</button>
-        </div>
-    </div>
-
-    <div id="khungSuaTruongInfo" class="khung-modal" style="min-width: 350px;">
-        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Sửa thôngريق tin trường</h3>
-        <label style="font-weight: bold;">Tên trường (tiền tố):</label>
-        <input type="text" id="oSuaTienTo" class="nhap-sua">
-        <label style="font-weight: bold;">Mã số:</label>
-        <input type="text" id="oSuaMaSo" class="nhap-sua">
-        <div style="text-align: right; margin-top: 15px;">
-            <button id="nutLuuSuaTruong" class="nut-thanh-cong">Lưu thay đổi</button>
-            <button id="nutDongSuaTruong" class="nut-phu">Hủy</button>
-        </div>
-    </div>
-
-    <div id="khungSuaDuLieu" class="khung-modal">
-        <h3 style="margin-top:0; color:#007bff; border-bottom: 2px solid #eee; padding-bottom: 10px;">Sửa thông tin</h3>
-        <div id="noiDungSua"></div>
-        <div style="text-align: right; margin-top: 15px;">
-            <button id="nutLuuSua" class="nut-thanh-cong">Lưu thay đổi</button>
-            <button id="nutDongSua" class="nut-phu">Hủy</button>
-        </div>
-    </div>
-
-    <div class="phan-ban-quyen">
-        Bản quyền: Dlk Edu Tech - Phát triển bởi tranhongdan@tranphudlk.edu.vn
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, get, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyASafVpSGkoJbAY9xe0Q09gUmtUL2J7NI8",
-            authDomain: "stdin4.firebaseapp.com",
-            databaseURL: "https://stdin4-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "stdin4",
-            storageBucket: "stdin4.firebasestorage.app",
-            messagingSenderId: "826465045747",
-            appId: "1:826465045747:web:c97a57537290a427dc7b86"
-        };
-
-        const ungDung = initializeApp(firebaseConfig);
-        const coSoDuLieu = getDatabase(ungDung);
-
-        let duongDanDuLieu, duongDanTieuDe, duongDanLinkThongBao, duongDanChoPhepSua, duongDanMatKhauRoot, duongDanDemNguoc, duongDanCaiDatCot;
+    <style>
+        :root { --primary-color: #2563eb; --bg-color: #f1f5f9; --card-radius: 12px; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; min-height: 100vh; color: #334155; }
+        .navbar { background-color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .navbar-brand { font-weight: 700; color: var(--primary-color) !important; }
+        .main-content { flex: 1; padding-top: 2rem; padding-bottom: 3rem; }
+        .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .active-view { display: block; }
         
-        let duLieuGoc = [];
-        let cacCotHienThi = [];
-        let tatCaCotExcel = [];
-        let cauHinhCot = {};
-        let cotAn = "";
+        .card { border: none; border-radius: var(--card-radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); margin-bottom: 1.5rem; }
+        .card-header { background-color: #ffffff; border-bottom: 1px solid #f1f5f9; border-radius: var(--card-radius) var(--card-radius) 0 0 !important; padding: 1.25rem 1.5rem; font-weight: 600; }
+        .form-control, .form-select { border-radius: 8px; padding: 0.6rem 1rem; border: 1px solid #cbd5e1; }
+        .form-control:focus, .form-select:focus { box-shadow: 0 0 0 3px rgba(37,99,235,0.1); border-color: var(--primary-color); }
+        .btn { border-radius: 8px; padding: 0.5rem 1.25rem; font-weight: 500; transition: all 0.2s; }
         
-        let trangThaiDangNhap = false;
-        let choPhepSuaHienTai = false;
-        let matKhauHienTai = "admin"; 
-        let duLieuHangDangSua = null;
-        let maTruongHienTai = ""; 
-        let laRoot = false;
-        let truongDangSua = null;
-        let tienToHienTai = "";
-        let maSoHienTai = "";
+        table th { background-color: #f8fafc !important; color: #475569; font-weight: 600; white-space: nowrap; }
+        .readonly-field { background-color: #f1f5f9; color: #64748b; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.95); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
         
-        let duLieuTieuDe = {
-            dong1: "SỞ GD & ĐT ĐẮK LẮK",
-            dong2: "TRƯỜNG THPT SỐ 1 TRẦN PHÚ",
-            dong3: "Hệ Thống Tìm Kiếm Thông Tin Học Sinh"
-        };
+        .nav-pills .nav-link { border-radius: 8px; color: #475569; font-weight: 500; cursor: pointer; }
+        .nav-pills .nav-link.active { background-color: #10b981; color: white; }
+        
+        /* Admin Tabs styling */
+        .admin-tabs .nav-link { color: #475569; font-weight: 600; border: none; border-bottom: 3px solid transparent; padding: 1rem 1.5rem; border-radius: 0; }
+        .admin-tabs .nav-link.active { color: var(--primary-color); border-bottom-color: var(--primary-color); background: none; }
+        .admin-tabs .nav-link:hover { color: var(--primary-color); }
 
-        let duLieuLinkThongBao = { noiDung: "", url: "" };
-        let duLieuDemNguoc = { trangThai: false, moTaTren: "CÒN LẠI", moTaDuoi: "", thoiGian: "" };
-        let intervalDemNguoc = null;
+        /* Hiệu ứng trỏ chuột cho thẻ ở Trang chủ */
+        .role-card { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; border: 2px solid transparent; }
+        .role-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); border-color: #cbd5e1; }
+        .role-card-success:hover { border-color: #10b981; }
+        .role-card-primary:hover { border-color: #3b82f6; }
+        .role-card-danger:hover { border-color: #ef4444; }
+        
+        .cursor-pointer { cursor: pointer; }
+        .export-field-badge:hover { filter: brightness(0.9); }
+    </style>
+</head>
+<body>
 
-        const fileNhap = document.getElementById('fileNhap');
-        const nutTaiLen = document.getElementById('nutTaiLen');
-        const nutTaiDuLieu = document.getElementById('nutTaiDuLieu');
-        const nutCaiDatCot = document.getElementById('nutCaiDatCot');
-        const nutThemCotCongThuc = document.getElementById('nutThemCotCongThuc');
-        const nutDoiMaSo = document.getElementById('nutDoiMaSo');
-        const nutDangNhap = document.getElementById('nutDangNhap');
-        const nutDoiTieuDe = document.getElementById('nutDoiTieuDe');
-        const nutDoiLinkThongBao = document.getElementById('nutDoiLinkThongBao');
-        const nutCaiDatDemNguoc = document.getElementById('nutCaiDatDemNguoc');
-        const khungQuanLy = document.getElementById('khungQuanLy');
-        const khungBang = document.getElementById('khungBang');
-        const trangThai = document.getElementById('trangThai');
-        const tieuDe1 = document.getElementById('tieuDe1');
-        const tieuDe2 = document.getElementById('tieuDe2');
-        const tieuDe3 = document.getElementById('tieuDe3');
-        const nutMoTatSua = document.getElementById('nutMoTatSua');
+<!-- MÀN HÌNH CHỜ -->
+<div id="loading-overlay">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+    <h5 class="mt-3 text-primary fw-semibold" id="loading-text">Đang xử lý dữ liệu...</h5>
+    <p class="text-muted small">Vui lòng không đóng trình duyệt!</p>
+</div>
 
-        const khungThemCotCongThuc = document.getElementById('khungThemCotCongThuc');
-        const nutDongCotCongThuc = document.getElementById('nutDongCotCongThuc');
-        const nutLuuCotCongThuc = document.getElementById('nutLuuCotCongThuc');
-        const oTenCotCongThuc = document.getElementById('oTenCotCongThuc');
-        const oBieuThucCongThuc = document.getElementById('oBieuThucCongThuc');
-        const goiYCotCongThuc = document.getElementById('goiYCotCongThuc');
-        const lopPhu = document.getElementById('lopPhuModal');
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="#" onclick="logout()">🏫 THPT Số 1 Trần Phú</a>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary d-none" id="btn-logout" onclick="logout()">Đăng xuất</button>
+        </div>
+    </div>
+</nav>
 
-        function nhapBaoMat(loai) {
-            return new Promise((giaiQuyet) => {
-                const khungBaoMat = document.getElementById('khungNhapBaoMat');
-                const lopPhuModal = document.getElementById('lopPhuModal');
-                const oNhapBaoMat = document.getElementById('oNhapBaoMat');
-                const nutAnHienBaoMat = document.getElementById('nutAnHienBaoMat');
-                const nutXacNhanBaoMat = document.getElementById('nutXacNhanBaoMat');
-                const nutHuyBaoMat = document.getElementById('nutHuyBaoMat');
-                const moTaDangNhap = document.getElementById('moTaDangNhap');
+<div class="container main-content">
+    
+    <!-- MENU CHỌN QUYỀN -->
+    <div id="role-selector" class="view-section active-view">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold mb-3">Cổng Thông Tin Học Sinh</h2>
+            <p class="text-muted">Vui lòng chọn vai trò để tiếp tục truy cập vào hệ thống</p>
+        </div>
+        <div class="row justify-content-center g-4">
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 text-center p-4 role-card role-card-success" onclick="showView('guest-view'); loadGuestData()">
+                    <h3 class="mb-3">🔍</h3><h5 class="fw-bold text-success">Khách Truy Cập</h5>
+                    <p class="text-muted small mb-0">Tra cứu thông tin lớp học, tổ hợp môn và tìm kiếm học sinh.</p>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 text-center p-4 role-card role-card-primary" onclick="showView('student-login')">
+                    <h3 class="mb-3">🎓</h3><h5 class="fw-bold text-primary">Học Sinh</h5>
+                    <p class="text-muted small mb-0">Đăng nhập để xem và cập nhật thông tin cá nhân của bạn.</p>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 text-center p-4 role-card role-card-danger" onclick="showView('admin-login')">
+                    <h3 class="mb-3">⚙️</h3><h5 class="fw-bold text-danger">Quản Trị Viên</h5>
+                    <p class="text-muted small mb-0">Khu vực dành riêng cho nhà trường để quản lý dữ liệu.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                if (loai === "root") {
-                    moTaDangNhap.textContent = "Mật khẩu quản lý Root hoặc Mã đăng nhập trường (VD: abc1234)";
-                } else if (loai === "school") {
-                    moTaDangNhap.textContent = `Mã đăng nhập quản lý trường (Ví dụ: ${tienToHienTai}xxxx)`;
-                } else {
-                    moTaDangNhap.textContent = "Nhập thông tin xác thực đối chiếu";
-                }
+    <!-- KHÁCH: XEM THÔNG TIN -->
+    <div id="guest-view" class="view-section">
+        <button class="btn btn-light mb-3 shadow-sm" onclick="logout()">← Quay lại</button>
+        <ul class="nav nav-pills mb-4 justify-content-center gap-2">
+            <li class="nav-item"><a class="nav-link active px-4" id="tab-class" onclick="switchGuestTab('class')">Tra Cứu Theo Lớp</a></li>
+            <li class="nav-item"><a class="nav-link px-4" id="tab-search" onclick="switchGuestTab('search')">Tìm Kiếm Học Sinh</a></li>
+        </ul>
 
-                oNhapBaoMat.value = '';
-                oNhapBaoMat.type = 'password';
-                nutAnHienBaoMat.textContent = 'Hiện';
+        <div id="pane-class" class="card">
+            <div class="card-header text-success">Tra cứu thông tin lớp</div>
+            <div class="card-body p-4">
+                <select id="guest-class-select" class="form-select form-select-lg mb-4" onchange="fetchClassDetails()">
+                    <option value="">-- Chọn Lớp để xem thông tin --</option>
+                </select>
+                <div id="guest-class-info" style="display:none;">
+                    <div class="row bg-light p-3 rounded mb-4">
+                        <div class="col-md-6 mb-2 mb-md-0">
+                            <p class="mb-1"><strong>Giáo viên chủ nhiệm:</strong> <span id="g-teacher" class="text-primary fw-medium"></span></p>
+                            <p class="mb-0"><strong>Mã Tổ hợp:</strong> <span id="g-combo" class="badge bg-primary"></span></p>
+                        </div>
+                        <div class="col-md-6 border-start border-2">
+                            <ul class="list-unstyled mb-0 small">
+                                <li class="mb-1"><strong>Bắt buộc:</strong> <span id="g-mandatory"></span></li>
+                                <li class="mb-1"><strong>Tự chọn:</strong> <span id="g-elective"></span></li>
+                                <li><strong>Chuyên đề:</strong> <span id="g-specialized"></span></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <h6 class="fw-bold mb-3">Danh sách học sinh</h6>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle" id="guest-table-class">
+                            <thead id="guest-table-class-head"></thead>
+                            <tbody id="guest-table-class-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                khungBaoMat.style.display = 'block';
-                lopPhuModal.style.display = 'block';
-                oNhapBaoMat.focus();
+        <div id="pane-search" class="card" style="display: none;">
+            <div class="card-header text-success">Tìm kiếm nhanh học sinh</div>
+            <div class="card-body p-4">
+                <div class="input-group mb-4">
+                    <span class="input-group-text bg-white border-end-0">🔍</span>
+                    <input type="text" id="guest-search-input" class="form-control form-control-lg border-start-0 border-end-0 ps-0" placeholder="Nhập tên học sinh (VD: Nguyễn Văn Ánh, nguyen van a, nva...)" oninput="searchStudent()">
+                    <button class="btn btn-outline-secondary border-start-0 bg-white text-primary" type="button" onclick="forceReloadCache()" title="Làm mới dữ liệu">🔄</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="guest-table-search">
+                        <thead id="guest-table-search-head"></thead>
+                        <tbody id="guest-table-search-body">
+                            <tr><td colspan="10" class="text-center text-muted py-4">Vui lòng nhập tên để tìm kiếm</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                const dongKhungBaoMat = (giaTri) => {
-                    khungBaoMat.style.display = 'none';
-                    lopPhuModal.style.display = 'none';
-                    nutXacNhanBaoMat.onclick = null;
-                    nutHuyBaoMat.onclick = null;
-                    nutAnHienBaoMat.onclick = null;
-                    oNhapBaoMat.onkeypress = null;
-                    giaiQuyet(giaTri);
-                };
+    <!-- HỌC SINH: ĐĂNG NHẬP -->
+    <div id="student-login" class="view-section">
+        <button class="btn btn-light mb-3 shadow-sm" onclick="logout()">← Quay lại</button>
+        <div class="card mx-auto" style="max-width: 420px;">
+            <div class="card-body p-4 text-center">
+                <h4 class="fw-bold mb-4 text-primary">Học Sinh Đăng Nhập</h4>
+                <input type="text" id="student-id" class="form-control form-control-lg mb-2" placeholder="Nhập Mã đăng nhập">
+                <div class="form-text text-start mb-4 text-muted small bg-light p-2 rounded">
+                    📌 <strong>Hướng dẫn:</strong><br>
+                    • <b>Khối 10</b>: Dùng Mã học sinh (cấp khi ĐK TS 10)<br>
+                    • <b>Khối 11, 12</b>: Dùng Số CCCD
+                </div>
+                <button class="btn btn-primary btn-lg w-100" onclick="loginStudent()">Truy Cập Hồ Sơ</button>
+            </div>
+        </div>
+    </div>
 
-                nutXacNhanBaoMat.onclick = () => dongKhungBaoMat(oNhapBaoMat.value);
-                nutHuyBaoMat.onclick = () => dongKhungBaoMat(null);
+    <!-- HỌC SINH: CHỈNH SỬA THÔNG TIN & ĐĂNG KÝ CHUYỂN LỚP -->
+    <div id="student-dashboard" class="view-section">
+        <div class="card mx-auto" style="max-width: 800px;">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Hồ Sơ Cá Nhân & Nguyện Vọng</span>
+            </div>
+            <div class="card-body p-4">
+                <input type="hidden" id="s-old-id">
                 
-                nutAnHienBaoMat.onclick = () => {
-                    if (oNhapBaoMat.type === 'password') {
-                        oNhapBaoMat.type = 'text';
-                        nutAnHienBaoMat.textContent = 'Ẩn';
-                    } else {
-                        oNhapBaoMat.type = 'password';
-                        nutAnHienBaoMat.textContent = 'Hiện';
-                    }
-                };
+                <div class="bg-light p-3 rounded mb-4" id="s-header-info" style="display:none;">
+                    <div class="text-center mb-3">
+                        <h4 class="fw-bold text-primary mb-1" id="s-name-display"></h4>
+                        <p class="mb-0 text-muted">Lớp Hiện Tại: <span id="s-class-display" class="fw-bold text-dark fs-5"></span></p>
+                    </div>
+                    <hr>
+                    <div>
+                        <p class="mb-2"><strong>Mã Tổ hợp:</strong> <span id="s-combo-id" class="badge bg-info text-dark">Đang tải...</span></p>
+                        <div id="s-combo-details" class="small text-muted" style="display: none;">
+                            <p class="mb-1"><strong>Bắt buộc:</strong> <span id="s-combo-mandatory" class="text-dark"></span></p>
+                            <p class="mb-1"><strong>Tự chọn:</strong> <span id="s-combo-elective" class="text-dark"></span></p>
+                            <p class="mb-0"><strong>Chuyên đề:</strong> <span id="s-combo-specialized" class="text-dark"></span></p>
+                        </div>
+                    </div>
+                </div>
                 
-                oNhapBaoMat.onkeypress = (suKien) => {
-                    if (suKien.key === 'Enter') {
-                        dongKhungBaoMat(oNhapBaoMat.value);
-                    }
-                };
-            });
-        }
+                <div id="s-edit-notice" class="alert py-2 mb-4 small" role="alert" style="display: none;"></div>
 
-        const thamSoURL = new URLSearchParams(window.location.search);
-        maTruongHienTai = thamSoURL.get('truong');
+                <div class="row g-3 mb-4" id="dynamic-student-form"></div>
+                <button class="btn btn-success w-100 py-2 mb-4" id="btn-save-student" onclick="updateStudentInfo()" style="display:none;">
+                    Lưu Thông Tin Cập Nhật
+                </button>
 
-        duongDanMatKhauRoot = ref(coSoDuLieu, 'mat_khau_admin'); 
-        onValue(duongDanMatKhauRoot, (snapshot) => {
-            if (snapshot.exists()) {
-                matKhauHienTai = snapshot.val();
-            }
-        });
+                <!-- KHU VỰC ĐĂNG KÝ CHUYỂN LỚP CHO KHỐI 10 -->
+                <div id="s-transfer-section" class="border-top pt-4" style="display:none;">
+                    <h5 class="fw-bold text-primary mb-2">Đăng ký nguyện vọng chuyển lớp</h5>
+                    <p class="text-muted small mb-3"><i>Dành cho học sinh khối 10 tham khảo chọn lại tổ hợp môn. Bấm "Chọn" tại lớp muốn xin chuyển đến.</i></p>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover text-center align-middle bg-white small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Lớp</th>
+                                    <th>Mã TH môn</th>
+                                    <th>Sĩ số</th>
+                                    <th class="text-success">Biến động Tăng</th>
+                                    <th class="text-danger">Biến động Giảm</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="s-transfer-tbody">
+                                <tr><td colspan="6">Đang tải danh sách lớp...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-        if (!maTruongHienTai) {
-            laRoot = true;
-            duongDanDuLieu = ref(coSoDuLieu, 'danh_sach_hoc_sinh');
-            duongDanTieuDe = ref(coSoDuLieu, 'tieu_de_trang');
-            duongDanLinkThongBao = ref(coSoDuLieu, 'link_thong_bao');
-            duongDanChoPhepSua = ref(coSoDuLieu, 'cho_phep_sua');
-            duongDanDemNguoc = ref(coSoDuLieu, 'cai_dat_dem_nguoc');
-            duongDanCaiDatCot = ref(coSoDuLieu, 'cai_dat_cot');
-            nutDoiMaSo.style.display = "none";
-        } else {
-            laRoot = false;
-            duongDanDuLieu = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/danh_sach_hoc_sinh');
-            duongDanTieuDe = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/tieu_de_trang');
-            duongDanLinkThongBao = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/link_thong_bao');
-            duongDanChoPhepSua = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/cho_phep_sua');
-            duongDanDemNguoc = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/cai_dat_dem_nguoc');
-            duongDanCaiDatCot = ref(coSoDuLieu, 'schools/' + maTruongHienTai + '/cai_dat_cot');
-            nutDoiMaSo.style.display = "inline-block";
-            
-            onValue(ref(coSoDuLieu, 'danh_sach_truong/' + maTruongHienTai), (snapshot) => {
-                if (snapshot.exists()) {
-                    tienToHienTai = snapshot.val().tienTo || "";
-                    maSoHienTai = snapshot.val().maSo || "";
-                }
-            });
-        }
+            </div>
+        </div>
+    </div>
 
-        window.addEventListener('DOMContentLoaded', () => {
-            const daDangNhap = sessionStorage.getItem('dangNhapTruong');
-            if (daDangNhap === 'root' && laRoot) {
-                trangThaiDangNhap = true;
-                hienThiGiaoDienQuanLy();
-                document.getElementById('khungRootAdmin').style.display = "block";
-                hienThiDanhSachTruong();
-            } else if (daDangNhap && daDangNhap === maTruongHienTai && !laRoot) {
-                trangThaiDangNhap = true;
-                hienThiGiaoDienQuanLy();
-            }
-        });
+    <!-- ADMIN: ĐĂNG NHẬP -->
+    <div id="admin-login" class="view-section">
+        <button class="btn btn-light mb-3 shadow-sm" onclick="logout()">← Quay lại</button>
+        <div class="card mx-auto" style="max-width: 420px;">
+            <div class="card-body p-4 text-center">
+                <h4 class="fw-bold mb-4">Quản Trị Hệ Thống</h4>
+                <input type="password" id="admin-pw" class="form-control form-control-lg mb-3" placeholder="Nhập mã đăng nhập quản trị">
+                <button class="btn btn-danger btn-lg w-100" onclick="loginAdmin()">Đăng Nhập</button>
+            </div>
+        </div>
+    </div>
 
-        function hienThiGiaoDienQuanLy() {
-            khungQuanLy.style.display = "block";
-            nutDangNhap.textContent = "Đăng xuất";
-        }
+    <!-- ADMIN: BẢNG ĐIỀU KHIỂN -->
+    <div id="admin-dashboard" class="view-section">
+        <h3 class="fw-bold mb-4">Bảng Điều Khiển Admin</h3>
+        
+        <div class="card shadow-sm">
+            <ul class="nav nav-tabs admin-tabs d-flex flex-wrap" id="adminTabRole" role="tablist">
+                <li class="nav-item flex-fill text-center" role="presentation"><button class="nav-link active w-100" data-bs-toggle="tab" data-bs-target="#tab-upload" type="button">📁 Nạp/Xuất Excel</button></li>
+                <li class="nav-item flex-fill text-center" role="presentation"><button class="nav-link w-100" data-bs-toggle="tab" data-bs-target="#tab-fields" type="button" onclick="loadAdminConfigFields()">⚙️ Quyền & Cấu Hình</button></li>
+                <li class="nav-item flex-fill text-center" role="presentation"><button class="nav-link w-100" data-bs-toggle="tab" data-bs-target="#tab-manage" type="button" onclick="loadAdminDataTable()">📝 Quản lý Trực tiếp</button></li>
+                <li class="nav-item flex-fill text-center" role="presentation"><button class="nav-link w-100" data-bs-toggle="tab" data-bs-target="#tab-stats" type="button" onclick="loadAdminStats()">📊 Thống kê</button></li>
+                <li class="nav-item flex-fill text-center" role="presentation"><button class="nav-link w-100" data-bs-toggle="tab" data-bs-target="#tab-security" type="button">🔒 Bảo mật</button></li>
+            </ul>
 
-        function anGiaoDienQuanLy() {
-            khungQuanLy.style.display = "none";
-            document.getElementById('khungRootAdmin').style.display = "none";
-            nutDangNhap.textContent = "Đăng nhập quản lý";
-        }
+            <div class="tab-content p-4 border-top-0">
+                <!-- Tab: Nạp Excel -->
+                <div class="tab-pane fade show active" id="tab-upload" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-primary fw-bold mb-0">Cập Nhật Dữ Liệu</h5>
+                        <button class="btn btn-success btn-sm shadow-sm" onclick="openExportModal()">⬇️ Tải Xuống Dữ Liệu Gốc</button>
+                    </div>
+                    <div class="alert alert-info py-2 small mb-4"><strong>Lưu ý:</strong> Nạp file mới sẽ xóa và ghi đè toàn bộ dữ liệu cũ của danh mục tương ứng. Bảng danh sách học sinh có thể chứa số lượng cột tùy ý. Cột <b>Mã</b> là bắt buộc để làm ID tài khoản.</div>
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <label class="fw-bold mb-2 small text-uppercase">1. Thông tin Lớp</label>
+                            <input type="file" id="file-classes" class="form-control mb-2" accept=".xlsx, .xls">
+                            <button class="btn btn-primary w-100" onclick="processUpload('file-classes', 'classes')">Nạp Lớp</button>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="fw-bold mb-2 small text-uppercase">2. Tổ hợp môn</label>
+                            <input type="file" id="file-combos" class="form-control mb-2" accept=".xlsx, .xls">
+                            <button class="btn btn-primary w-100" onclick="processUpload('file-combos', 'combos')">Nạp Tổ Hợp</button>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="fw-bold mb-2 small text-uppercase">3. Học sinh (Tùy biến cột)</label>
+                            <input type="file" id="file-students" class="form-control mb-2" accept=".xlsx, .xls">
+                            <button class="btn btn-primary w-100" onclick="processUpload('file-students', 'students')">Nạp Học Sinh</button>
+                        </div>
+                    </div>
+                </div>
 
-        onValue(duongDanChoPhepSua, (snapshot) => {
-            if (snapshot.exists()) {
-                choPhepSuaHienTai = snapshot.val();
-            } else {
-                choPhepSuaHienTai = false;
-            }
-            capNhatGiaoDienQuyenSua();
-            if (duLieuGoc.length > 0) locDuLieu();
-        });
-
-        onValue(duongDanTieuDe, (snapshot) => {
-            if (snapshot.exists()) {
-                duLieuTieuDe = snapshot.val();
-                tieuDe1.textContent = duLieuTieuDe.dong1 || "";
-                tieuDe2.textContent = duLieuTieuDe.dong2 || "";
-                tieuDe3.textContent = duLieuTieuDe.dong3 || "";
-                document.title = (duLieuTieuDe.dong1 || "SỞ GDĐT") + " - " + (duLieuTieuDe.dong2 || "TRƯỜNG");
-            }
-        });
-
-        onValue(duongDanCaiDatCot, (snapshot) => {
-            if (snapshot.exists()) {
-                cauHinhCot = snapshot.val();
-            } else {
-                cauHinhCot = {};
-            }
-            if (tatCaCotExcel.length > 0) {
-                apDungCauHinhCot();
-            }
-        });
-
-        function apDungCauHinhCot() {
-            if (tatCaCotExcel.length === 0) return;
-
-            let cauHinhThucTe = {};
-            let coCotAnDaChon = false;
-
-            tatCaCotExcel.forEach((cot, viTri) => {
-                if (cauHinhCot[cot]) {
-                    cauHinhThucTe[cot] = cauHinhCot[cot];
-                    if (cauHinhThucTe[cot].laCotAn) coCotAnDaChon = true;
-                } else {
-                    cauHinhThucTe[cot] = {
-                        hienThi: viTri !== 0,
-                        choSua: viTri !== 0,
-                        laCotAn: viTri === 0
-                    };
-                    if (viTri === 0) coCotAnDaChon = true;
-                }
-            });
-
-            if (!coCotAnDaChon && tatCaCotExcel.length > 0) { 
-                 cauHinhThucTe[tatCaCotExcel[0]].laCotAn = true;
-                 cauHinhThucTe[tatCaCotExcel[0]].hienThi = false;
-            }
-
-            cotAn = tatCaCotExcel.find(cot => cauHinhThucTe[cot].laCotAn);
-            if(!cotAn) cotAn = tatCaCotExcel[0]; 
-
-            cacCotHienThi = tatCaCotExcel.filter(cot => cauHinhThucTe[cot].hienThi);
-            cauHinhCot = cauHinhThucTe;
-
-            taoKhungBang();
-            locDuLieu(); 
-        }
-
-        onValue(duongDanLinkThongBao, (snapshot) => {
-            if (snapshot.exists()) {
-                duLieuLinkThongBao = snapshot.val();
-                const coNoiDung = duLieuLinkThongBao.noiDung && duLieuLinkThongBao.noiDung.trim() !== "";
-                const coUrl = duLieuLinkThongBao.url && duLieuLinkThongBao.url.trim() !== "";
-
-                const khungThongBao = document.getElementById('khungThongBaoLink');
-                const theNoiDung = document.getElementById('noiDungThongBaoLink');
-
-                if (coNoiDung || coUrl) {
-                    khungThongBao.style.display = 'block';
-                    theNoiDung.innerHTML = '';
+                <!-- Tab: Cấu hình Cột & Quyền -->
+                <div class="tab-pane fade" id="tab-fields" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-primary fw-bold mb-0">Cài Đặt Cột Hiển Thị & Quyền Chỉnh Sửa</h5>
+                        <span id="auto-save-status" class="text-success fw-bold small" style="opacity: 0; transition: opacity 0.5s;">✓ Đã lưu tự động</span>
+                    </div>
                     
-                    if (coNoiDung) {
-                        theNoiDung.appendChild(document.createTextNode(duLieuLinkThongBao.noiDung));
-                    }
+                    <div class="alert alert-warning mb-4">
+                        <div class="form-check form-switch fs-6 mb-1">
+                            <input class="form-check-input" type="checkbox" id="perm-transfer" onchange="saveAdminConfigFields()">
+                            <label class="form-check-label fw-bold text-dark">Mở tính năng Đăng ký chuyển lớp (Dành cho Khối 10)</label>
+                        </div>
+                        <p class="small text-muted mb-2">Khi bật, học sinh khối 10 có thể chọn lớp muốn chuyển. Dữ liệu này sẽ làm thay đổi Sĩ số dự kiến của các lớp.</p>
+                        <button class="btn btn-danger btn-sm" onclick="resetTransferData()">⚠️ Xóa toàn bộ dữ liệu đăng ký chuyển lớp cũ</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tên Trường Dữ Liệu (Cột Excel)</th>
+                                    <th class="text-center" width="20%">Khách được XEM</th>
+                                    <th class="text-center" width="20%">Học sinh được SỬA</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-config-fields-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Quản lý trực tiếp -->
+                <div class="tab-pane fade" id="tab-manage" role="tabpanel">
+                    <h5 class="text-primary fw-bold mb-3">Quản Lý & Chỉnh Sửa Dữ Liệu Trực Tiếp</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-4 mb-2">
+                            <select id="admin-data-collection" class="form-select" onchange="loadAdminDataTable()">
+                                <option value="students">Bảng: Học Sinh</option>
+                                <option value="classes">Bảng: Lớp Học</option>
+                                <option value="combos">Bảng: Tổ Hợp Môn</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8 mb-2 d-flex gap-2">
+                            <input type="text" id="admin-data-search" class="form-control" placeholder="Gõ để lọc/tìm kiếm thông tin (Tên, Mã, Lớp...)" oninput="filterAdminDataTable()">
+                            <!-- Nút thêm cột mới -->
+                            <button class="btn btn-outline-primary text-nowrap fw-semibold" id="btn-add-column" style="display:none;" onclick="addNewStudentColumn()">+ Thêm Cột Mới</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                        <table class="table table-bordered table-hover align-middle small" id="admin-table">
+                            <thead class="table-light" id="admin-table-head"></thead>
+                            <tbody id="admin-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Thống Kê -->
+                <div class="tab-pane fade" id="tab-stats" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-primary fw-bold mb-0">Thống Kê Số Liệu Học Sinh</h5>
+                        <button class="btn btn-success btn-sm shadow-sm" onclick="exportStatsToExcel()">⬇️ Tải Xuất Thống Kê</button>
+                    </div>
+                    <p class="text-muted small"><i>* Lưu ý: Tính năng thống kê yêu cầu dữ liệu phải có các cột tên chính xác là: "Lớp", "Giới tính", "Dân tộc". Dữ liệu trống sẽ được tính là 0.</i></p>
                     
-                    if (coUrl) {
-                        const linkNode = document.createElement('a');
-                        linkNode.href = duLieuLinkThongBao.url;
-                        linkNode.target = '_blank';
-                        linkNode.textContent = coNoiDung ? ' (👉 Nhấn vào đây để xem chi tiết)' : '👉 Nhấn vào đây để xem chi tiết';
-                        linkNode.style.color = '#0056b3';
-                        linkNode.style.fontWeight = 'bold';
-                        linkNode.style.textDecoration = 'underline';
-                        if(coNoiDung) {
-                            linkNode.style.marginLeft = '5px';
-                        }
-                        theNoiDung.appendChild(linkNode);
-                    }
-                } else {
-                    khungThongBao.style.display = 'none';
-                }
-            } else {
-                document.getElementById('khungThongBaoLink').style.display = 'none';
-            }
-        });
+                    <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                        <table class="table table-bordered table-hover align-middle text-center" id="admin-stat-table">
+                            <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+                                <tr>
+                                    <th class="text-start">Lớp / Khối</th>
+                                    <th>Tổng Số</th>
+                                    <th>Học sinh Nữ</th>
+                                    <th>Dân Tộc Thiểu Số</th>
+                                    <th>Nữ DTTS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-stat-results">
+                                <tr><td colspan="5">Đang tải dữ liệu...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-        function capNhatHienThiDemNguoc() {
-            if (intervalDemNguoc) {
-                clearInterval(intervalDemNguoc);
-            }
+                <!-- Tab: Bảo Mật -->
+                <div class="tab-pane fade" id="tab-security" role="tabpanel">
+                    <h5 class="text-danger fw-bold mb-3">Bảo Mật Hệ Thống</h5>
+                    <p class="text-muted">Đổi mã đăng nhập để bảo vệ trang quản trị khỏi truy cập trái phép.</p>
+                    <button class="btn btn-outline-danger" onclick="changeAdminPw()">Đổi Mã Đăng Nhập</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-            const khungHienThi = document.getElementById('khungHienThiDemNguoc');
-            const textMoTaTren = document.getElementById('textMoTaTrenDemNguoc');
-            const textThoiGian = document.getElementById('textThoiGianDemNguoc');
-            const textMoTaDuoi = document.getElementById('textMoTaDuoiDemNguoc');
+<!-- Modal Sửa Dữ Liệu Quản Trị -->
+<div class="modal fade" id="adminEditModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Chỉnh Sửa Bản Ghi</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="admin-edit-form-container"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-primary" onclick="saveAdminEdit()">Lưu Thay Đổi</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-            if (!duLieuDemNguoc || !duLieuDemNguoc.trangThai || !duLieuDemNguoc.thoiGian) {
-                khungHienThi.style.display = 'none';
-                return;
-            }
+<!-- Modal Tùy Chọn Xuất Excel -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">Tùy chọn Xuất Dữ Liệu Học Sinh</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small mb-3">Nhấn vào các cột bên trái để thêm vào danh sách xuất. Thứ tự chọn ở bên phải sẽ là thứ tự cột trong file Excel xuất ra. Dữ liệu sẽ tự động được sắp xếp theo <b>Lớp</b> và <b>STT</b>.</p>
+        <div class="row">
+            <div class="col-md-6 border-end">
+                <h6 class="fw-bold text-primary mb-3">Cột khả dụng (Bấm để thêm)</h6>
+                <div id="export-available-fields" class="d-flex flex-wrap gap-2"></div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-success mb-0">Cột đã chọn (Theo thứ tự)</h6>
+                    <button class="btn btn-sm btn-outline-danger py-0" onclick="clearExportFields()">Xóa hết</button>
+                </div>
+                <ul class="list-group" id="export-selected-fields"></ul>
+            </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-success" onclick="executeExport()">⬇️ Tiến hành Tải Xuống</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-            khungHienThi.style.display = 'block';
-            textMoTaTren.textContent = duLieuDemNguoc.moTaTren ? duLieuDemNguoc.moTaTren : "CÒN LẠI";
-            textMoTaDuoi.textContent = duLieuDemNguoc.moTaDuoi ? duLieuDemNguoc.moTaDuoi : "";
+<!-- THÔNG TIN BẢN QUYỀN -->
+<footer class="text-center py-3 bg-white border-top mt-auto">
+    <div class="container">
+        <small class="text-muted"><strong>Bản quyền:</strong> Dlk Edu Tech - Phát triển bởi tranhongdan@tranphudlk.edu.vn</small>
+    </div>
+</footer>
 
-            const thoiGianDich = new Date(duLieuDemNguoc.thoiGian).getTime();
+<script>
+    // ================= FIREBASE CONFIG =================
+    const firebaseConfig = {
+        apiKey: "AIzaSyBFsuQpiwLkGm2yQ-GiBPFpdsZr-wWABxk",
+        authDomain: "class-in4.firebaseapp.com",
+        projectId: "class-in4",
+        storageBucket: "class-in4.firebasestorage.app",
+        messagingSenderId: "626297943069",
+        appId: "1:626297943069:web:25233067e158c8663fc2f4"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-            intervalDemNguoc = setInterval(() => {
-                const thoiGianHienTai = new Date().getTime();
-                const khoangCach = thoiGianDich - thoiGianHienTai;
+    // ================= BIẾN TOÀN CỤC =================
+    let allStudentsCache = [];
+    let adminDataCache = []; 
+    let currentAdminDocId = null;
+    let dynamicFields = [];
+    let fieldPermissions = {};
+    
+    let exportAvailableFields = [];
+    let exportSelectedFields = [];
 
-                if (khoangCach < 0) {
-                    clearInterval(intervalDemNguoc);
-                    textThoiGian.textContent = "SỰ KIỆN ĐÃ DIỄN RA HOẶC KẾT THÚC";
-                    return;
-                }
+    const tableSchemas = {
+        classes: ['Lớp', 'Mã TH môn', 'Giáo viên chủ nhiệm'],
+        combos: ['Mã TH môn', 'Môn học - hoạt động GD bắt buộc', 'Môn tự chọn', 'Các môn có chuyên đề']
+    };
 
-                const ngay = Math.floor(khoangCach / (1000 * 60 * 60 * 24));
-                const gio = Math.floor((khoangCach % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const phut = Math.floor((khoangCach % (1000 * 60 * 60)) / (1000 * 60));
-                const giay = Math.floor((khoangCach % (1000 * 60)) / 1000);
+    // ================= TIỆN ÍCH =================
+    function showView(viewId) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
+        document.getElementById(viewId).classList.add('active-view');
+        const btnLogout = document.getElementById('btn-logout');
+        (viewId === 'admin-dashboard' || viewId === 'student-dashboard') ? btnLogout.classList.remove('d-none') : btnLogout.classList.add('d-none');
+    }
 
-                let chuoiThoiGian = "";
-                if(ngay > 0) chuoiThoiGian += ngay + " NGÀY ";
-                chuoiThoiGian += ("0" + gio).slice(-2) + " GIỜ " + ("0" + phut).slice(-2) + " PHÚT " + ("0" + giay).slice(-2) + " GIÂY";
+    function logout() {
+        showView('role-selector');
+        
+        document.getElementById('admin-pw').value = '';
+        document.getElementById('student-id').value = '';
+        document.getElementById('guest-search-input').value = '';
+        
+        document.getElementById('guest-class-info').style.display = 'none';
+        document.getElementById('guest-table-class-body').innerHTML = '';
+        document.getElementById('guest-table-search-body').innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">Vui lòng nhập tên để tìm kiếm</td></tr>';
+        
+        document.getElementById('dynamic-student-form').innerHTML = '';
+        document.getElementById('s-edit-notice').style.display = 'none';
+        document.getElementById('s-header-info').style.display = 'none';
+        document.getElementById('s-transfer-section').style.display = 'none';
+        document.getElementById('btn-save-student').style.display = 'none';
+    }
 
-                textThoiGian.textContent = chuoiThoiGian;
-            }, 1000);
+    function toggleLoading(show, text = 'Đang xử lý dữ liệu...') {
+        document.getElementById('loading-text').innerText = text;
+        document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+    }
+    
+    function normalizeString(str) {
+        if (!str) return '';
+        str = String(str).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        return str.replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase().trim();
+    }
+
+    async function fetchFieldConfigs() {
+        const fDoc = await db.collection('config').doc('student_fields').get();
+        if(fDoc.exists) dynamicFields = fDoc.data().fields || [];
+        
+        const pDoc = await db.collection('config').doc('permissions').get();
+        if(pDoc.exists) fieldPermissions = pDoc.data().perms || {};
+        
+        if(dynamicFields.length === 0) {
+            dynamicFields = ['STT', 'Mã', 'Họ và tên', 'Lớp', 'Ngày sinh', 'Giới tính', 'Dân tộc', 'Ý kiến của học sinh', 'Ghi chú'];
         }
+    }
 
-        onValue(duongDanDemNguoc, (snapshot) => {
-            if (snapshot.exists()) {
-                duLieuDemNguoc = snapshot.val();
-            } else {
-                duLieuDemNguoc = { trangThai: false, moTaTren: "CÒN LẠI", moTaDuoi: "", thoiGian: "" };
-            }
-            capNhatHienThiDemNguoc();
-        });
+    // ================= ADMIN: ĐĂNG NHẬP & BẢO MẬT =================
+    async function loginAdmin() {
+        const pw = document.getElementById('admin-pw').value;
+        try {
+            const doc = await db.collection('config').doc('admin').get();
+            const realPw = doc.exists ? doc.data().password : "11043006"; 
+            if (pw === realPw) {
+                showView('admin-dashboard');
+                await fetchFieldConfigs();
+            } else { alert('Mã đăng nhập không chính xác!'); }
+        } catch (error) { alert('Lỗi kết nối CSDL: ' + error.message); }
+    }
 
-        onValue(duongDanDuLieu, (snapshot) => {
-            const duLieuNhan = snapshot.val();
-            if (duLieuNhan && duLieuNhan.danhSach && duLieuNhan.danhSach.length > 0) {
-                duLieuGoc = [];
-                duLieuNhan.danhSach.forEach((hang, viTri) => {
-                    if (hang !== null) {
-                        hang._viTriGoc = viTri;
-                        duLieuGoc.push(hang);
-                    }
-                });
-                
-                if (duLieuGoc.length > 0) {
-                    tatCaCotExcel = duLieuNhan.thuTu || Object.keys(duLieuGoc[0]).filter(k => k !== "_viTriGoc" && k !== "_thongTinSua" && k !== "_daSua");
-                    apDungCauHinhCot();
-                }
-            } else {
-                khungBang.innerHTML = "<p>Chưa có dữ liệu trên hệ thống. Vui lòng nạp từ file Excel.</p>";
-            }
-        });
-
-        function capNhatGiaoDienQuyenSua() {
-            if (choPhepSuaHienTai) {
-                nutMoTatSua.textContent = "Khóa quyền sửa";
-                nutMoTatSua.className = "nut-canh-bao";
-            } else {
-                nutMoTatSua.textContent = "Mở quyền sửa";
-                nutMoTatSua.className = "nut-thanh-cong";
-            }
+    async function changeAdminPw() {
+        const newPw = prompt("Nhập mã đăng nhập Admin mới:");
+        if(newPw && newPw.trim() !== "") {
+            await db.collection('config').doc('admin').set({ password: newPw }, { merge: true });
+            alert('Đổi mã đăng nhập thành công!');
         }
+    }
 
-        nutDangNhap.addEventListener('click', async () => {
-            if (!trangThaiDangNhap) {
-                const nhapInfo = await nhapBaoMat(laRoot ? "root" : "school");
-                if (nhapInfo === null || nhapInfo.trim() === "") return;
-                
-                if (laRoot) {
-                    if (nhapInfo === matKhauHienTai) {
-                        sessionStorage.setItem('dangNhapTruong', 'root');
-                        trangThaiDangNhap = true;
-                        hienThiGiaoDienQuanLy();
-                        document.getElementById('khungRootAdmin').style.display = "block";
-                        hienThiDanhSachTruong();
-                        return;
-                    }
-
-                    const snapshot = await get(ref(coSoDuLieu, 'danh_sach_truong'));
-                    let foundTienTo = null;
-                    
-                    if (snapshot.exists()) {
-                        snapshot.forEach(child => {
-                            const dl = child.val();
-                            if ((dl.tienTo + dl.maSo) === nhapInfo) {
-                                foundTienTo = dl.tienTo;
-                            }
-                        });
-                    }
-
-                    if (foundTienTo) {
-                        sessionStorage.setItem('dangNhapTruong', foundTienTo);
-                        window.location.href = "?truong=" + foundTienTo;
-                    } else {
-                        alert("Mật khẩu Root hoặc mã đăng nhập trường không chính xác!");
-                    }
-
-                } else {
-                    const matKhauTruongNay = tienToHienTai + maSoHienTai;
-                    if (nhapInfo === matKhauTruongNay) {
-                        trangThaiDangNhap = true;
-                        sessionStorage.setItem('dangNhapTruong', maTruongHienTai);
-                        hienThiGiaoDienQuanLy();
-                    } else {
-                        alert("Mã đăng nhập không chính xác! (Mã phải bao gồm tiền tố và mã số)");
-                    }
-                }
-            } else {
-                trangThaiDangNhap = false;
-                sessionStorage.removeItem('dangNhapTruong');
-                anGiaoDienQuanLy();
-            }
-        });
-
-        function hienThiDanhSachTruong() {
-            const dsTruongRef = ref(coSoDuLieu, 'danh_sach_truong');
-            onValue(dsTruongRef, (snapshot) => {
-                const bangDs = document.getElementById('bangDanhSachTruong');
-                if(!snapshot.exists()) {
-                    bangDs.innerHTML = "<p>Chưa có trường nào được tạo.</p>";
-                    return;
-                }
-                
-                let html = '<table><thead><tr><th>Mã Trường (Tiền tố)</th><th>Mã Số</th><th>Link Truy Cập</th><th style="text-align:center;">Thao tác</th></tr></thead><tbody>';
-                snapshot.forEach((truongSnap) => {
-                    const dl = truongSnap.val();
-                    const nodeKey = truongSnap.key; 
-                    const tienToHienThi = dl.tienTo || dl.maTruong || ""; 
-                    const maSoHienThi = dl.maSo || "";
-                    const maTruongHienThi = dl.maTruong || nodeKey;
-                    
-                    html += `<tr>
-                        <td><strong>${tienToHienThi}</strong></td>
-                        <td>${maSoHienThi}</td>
-                        <td><a href="${dl.link}" target="_blank">${dl.link}</a></td>
-                        <td style="text-align:center;">
-                            <button class="nut-sua-dong nut-sua-truong" data-key="${nodeKey}" data-matruong="${maTruongHienThi}" data-tiento="${tienToHienThi}" data-maso="${maSoHienThi}">Sửa</button>
-                            <button class="nut-sua-dong nut-xoa-truong" data-key="${nodeKey}" data-matruong="${maTruongHienThi}">Xóa</button>
-                        </td>
-                    </tr>`;
-                });
-                html += '</tbody></table>';
-                bangDs.innerHTML = html;
-            });
-        }
-
-        document.getElementById('nutTaoTruongMoi').addEventListener('click', async () => {
-            const tienTo = document.getElementById('oTienToTruong').value.trim();
-            const maSo = document.getElementById('oMaSoTruong').value.trim();
-
-            if(!tienTo || !maSo) {
-                alert("Vui lòng nhập đầy đủ tên trường (tiền tố) và mã số!");
-                return;
-            }
-
-            const checkSnap = await get(ref(coSoDuLieu, 'danh_sach_truong/' + tienTo));
-            if (checkSnap.exists()) {
-                alert("Tên trường (tiền tố) này đã tồn tại!");
-                return;
-            }
-
-            const linkTruong = window.location.origin + window.location.pathname + "?truong=" + tienTo;
-            const truongRef = ref(coSoDuLieu, 'danh_sach_truong/' + tienTo);
-
-            set(truongRef, { 
-                maTruong: tienTo, 
-                tienTo: tienTo,
-                maSo: maSo,
-                link: linkTruong, 
-                ngayTao: new Date().toISOString() 
-            }).then(() => {
-                alert(`Đã tạo trường thành công!\n- Link truy cập: ${linkTruong}\n- Mã đăng nhập quản lý: ${tienTo}${maSo}`);
-                document.getElementById('oTienToTruong').value = "";
-                document.getElementById('oMaSoTruong').value = "";
-            }).catch(loi => console.error(loi));
-        });
-
-        document.getElementById('bangDanhSachTruong').addEventListener('click', (suKien) => {
-            if (suKien.target.classList.contains('nut-sua-truong')) {
-                truongDangSua = {
-                    nodeKey: suKien.target.getAttribute('data-key'),
-                    maTruong: suKien.target.getAttribute('data-matruong'),
-                    tienTo: suKien.target.getAttribute('data-tiento'),
-                    maSo: suKien.target.getAttribute('data-maso')
-                };
-                
-                document.getElementById('oSuaTienTo').value = truongDangSua.tienTo;
-                document.getElementById('oSuaMaSo').value = truongDangSua.maSo;
-                
-                document.getElementById('lopPhuModal').style.display = 'block';
-                document.getElementById('khungSuaTruongInfo').style.display = 'block';
-            }
-            
-            if (suKien.target.classList.contains('nut-xoa-truong')) {
-                const nodeKey = suKien.target.getAttribute('data-key'); 
-                const oldMaTruong = suKien.target.getAttribute('data-matruong');
-                
-                if(confirm("Bạn có chắc chắn muốn xóa trường này và TOÀN BỘ dữ liệu của trường? Hành động này không thể hoàn tác!")) {
-                    remove(ref(coSoDuLieu, 'danh_sach_truong/' + nodeKey));
-                    remove(ref(coSoDuLieu, 'schools/' + nodeKey));
-                    if (oldMaTruong && oldMaTruong !== nodeKey) {
-                        remove(ref(coSoDuLieu, 'schools/' + oldMaTruong));
-                    }
-                    alert("Đã xóa trường thành công!");
-                }
-            }
-        });
-
-        document.getElementById('nutLuuSuaTruong').addEventListener('click', async () => {
-            if(!truongDangSua) return;
-            
-            const tienToMoi = document.getElementById('oSuaTienTo').value.trim();
-            const maSoMoi = document.getElementById('oSuaMaSo').value.trim();
-            
-            if(!tienToMoi || !maSoMoi) {
-                alert("Tên trường và mã số không được để trống!");
-                return;
-            }
-            
-            const linkTruongMoi = window.location.origin + window.location.pathname + "?truong=" + tienToMoi;
-            
-            if(tienToMoi !== truongDangSua.nodeKey) {
-                const kiemTraTruongMoi = await get(ref(coSoDuLieu, 'danh_sach_truong/' + tienToMoi));
-                if (kiemTraTruongMoi.exists()) {
-                    alert("Tên trường (tiền tố) này đã tồn tại, vui lòng chọn tên khác!");
-                    return;
-                }
-
-                let duLieuCuSnap = await get(ref(coSoDuLieu, 'schools/' + truongDangSua.nodeKey));
-                if (!duLieuCuSnap.exists() && truongDangSua.maTruong) {
-                    duLieuCuSnap = await get(ref(coSoDuLieu, 'schools/' + truongDangSua.maTruong));
-                }
-
-                if(duLieuCuSnap.exists()) {
-                    await set(ref(coSoDuLieu, 'schools/' + tienToMoi), duLieuCuSnap.val());
-                }
-                
-                await remove(ref(coSoDuLieu, 'schools/' + truongDangSua.nodeKey));
-                if (truongDangSua.maTruong && truongDangSua.maTruong !== truongDangSua.nodeKey) {
-                    await remove(ref(coSoDuLieu, 'schools/' + truongDangSua.maTruong));
-                }
-                
-                await remove(ref(coSoDuLieu, 'danh_sach_truong/' + truongDangSua.nodeKey));
-                
-                await set(ref(coSoDuLieu, 'danh_sach_truong/' + tienToMoi), {
-                    maTruong: tienToMoi,
-                    tienTo: tienToMoi,
-                    maSo: maSoMoi,
-                    link: linkTruongMoi,
-                    ngayTao: new Date().toISOString()
-                });
-            } else {
-                await set(ref(coSoDuLieu, 'danh_sach_truong/' + truongDangSua.nodeKey + '/maSo'), maSoMoi);
-            }
-            
-            alert("Đã cập nhật thông tin trường thành công!");
-            document.getElementById('lopPhuModal').style.display = 'none';
-            document.getElementById('khungSuaTruongInfo').style.display = 'none';
-            truongDangSua = null;
-        });
-
-        document.getElementById('nutDongSuaTruong').addEventListener('click', () => {
-            document.getElementById('lopPhuModal').style.display = 'none';
-            document.getElementById('khungSuaTruongInfo').style.display = 'none';
-            truongDangSua = null;
-        });
-
-        nutMoTatSua.addEventListener('click', () => {
-            const trangThaiMoi = !choPhepSuaHienTai;
-            set(duongDanChoPhepSua, trangThaiMoi)
-                .then(() => alert(trangThaiMoi ? "Đã mở chức năng sửa dữ liệu cho học sinh!" : "Đã khóa chức năng sửa dữ liệu!"))
-                .catch((loi) => console.error(loi));
-        });
-
-        // Xử lý Cài Đặt Cột
-        nutCaiDatCot.addEventListener('click', () => {
-            if (tatCaCotExcel.length === 0) {
-                alert("Chưa có dữ liệu bảng để cài đặt! Vui lòng nạp dữ liệu Excel trước.");
-                return;
-            }
-
-            let htmlCaiDat = '';
-            tatCaCotExcel.forEach(cot => {
-                const macDinh = cauHinhCot[cot] || { hienThi: false, choSua: false, laCotAn: false };
-                htmlCaiDat += `
-                <tr>
-                    <td><strong>${cot}</strong></td>
-                    <td style="text-align:center;"><input type="checkbox" class="chk-hien-thi" data-cot="${cot}" ${macDinh.hienThi ? 'checked' : ''} style="transform: scale(1.3); cursor: pointer;"></td>
-                    <td style="text-align:center;"><input type="checkbox" class="chk-cho-sua" data-cot="${cot}" ${macDinh.choSua ? 'checked' : ''} style="transform: scale(1.3); cursor: pointer;"></td>
-                    <td style="text-align:center;"><input type="radio" name="rad-cot-an" class="rad-cot-an" data-cot="${cot}" value="${cot}" ${macDinh.laCotAn ? 'checked' : ''} style="transform: scale(1.3); cursor: pointer;"></td>
-                </tr>`;
-            });
-            document.getElementById('noiDungCaiDatCot').innerHTML = htmlCaiDat;
-            document.getElementById('lopPhuModal').style.display = 'block';
-            document.getElementById('khungCaiDatCot').style.display = 'block';
-
-            document.querySelectorAll('.rad-cot-an').forEach(rad => {
-                rad.addEventListener('change', (suKien) => {
-                    if(suKien.target.checked) {
-                        const cotChon = suKien.target.getAttribute('data-cot');
-                        const theChkHienThi = document.querySelector(`.chk-hien-thi[data-cot="${cotChon}"]`);
-                        if(theChkHienThi) theChkHienThi.checked = false;
-                    }
-                });
-            });
-        });
-
-        document.getElementById('nutDongCaiDatCot').addEventListener('click', () => {
-            document.getElementById('lopPhuModal').style.display = 'none';
-            document.getElementById('khungCaiDatCot').style.display = 'none';
-        });
-
-        document.getElementById('nutLuuCaiDatCot').addEventListener('click', () => {
-            let cauHinhMoiLuu = {};
-            let coCotAn = false;
-
-            tatCaCotExcel.forEach(cot => {
-                const theHienThi = document.querySelector(`.chk-hien-thi[data-cot="${cot}"]`);
-                const theChoSua = document.querySelector(`.chk-cho-sua[data-cot="${cot}"]`);
-                const theCotAn = document.querySelector(`.rad-cot-an[data-cot="${cot}"]`);
-
-                let cotMoiLuu = {
-                    hienThi: theHienThi ? theHienThi.checked : false,
-                    choSua: theChoSua ? theChoSua.checked : false,
-                    laCotAn: theCotAn ? theCotAn.checked : false
-                };
-                
-                // Bao ton cau hinh cong thuc neu co
-                if (cauHinhCot[cot] && cauHinhCot[cot].congThuc) {
-                    cotMoiLuu.congThuc = cauHinhCot[cot].congThuc;
-                }
-
-                cauHinhMoiLuu[cot] = cotMoiLuu;
-
-                if (cauHinhMoiLuu[cot].laCotAn) coCotAn = true;
-            });
-
-            if (!coCotAn) {
-                alert("Vui lòng chọn 1 cột làm Cột bảo mật (Ẩn) trước khi lưu!");
-                return;
-            }
-
-            set(duongDanCaiDatCot, cauHinhMoiLuu)
-                .then(() => {
-                    alert("Cập nhật cài đặt cột thành công!");
-                    document.getElementById('lopPhuModal').style.display = 'none';
-                    document.getElementById('khungCaiDatCot').style.display = 'none';
-                })
-                .catch(loi => {
-                    alert("Có lỗi khi lưu cấu hình cột!");
-                    console.error(loi);
-                });
-        });
-
-        // Xu ly chuc nang Cai dat Cong Thuc Cot
-        nutThemCotCongThuc.addEventListener('click', () => {
-            if (tatCaCotExcel.length === 0) {
-                alert("Chưa có dữ liệu bảng! Vui lòng nạp file Excel trước.");
-                return;
-            }
-            goiYCotCongThuc.innerHTML = "Các cột hiện có: <strong>" + tatCaCotExcel.join("</strong>, <strong>") + "</strong>";
-            oTenCotCongThuc.value = "";
-            oBieuThucCongThuc.value = "";
-            lopPhu.style.display = 'block';
-            khungThemCotCongThuc.style.display = 'block';
-        });
-
-        nutDongCotCongThuc.addEventListener('click', () => {
-            lopPhu.style.display = 'none';
-            khungThemCotCongThuc.style.display = 'none';
-        });
-
-        nutLuuCotCongThuc.addEventListener('click', async () => {
-            const tenCot = oTenCotCongThuc.value.trim();
-            // ĐÃ CẬP NHẬT: Thay thế dấu phẩy thành dấu chấm trong công thức để hỗ trợ gõ dạng 0,5
-            const congThuc = oBieuThucCongThuc.value.trim().replace(/,/g, '.');
-
-            if (!tenCot || !congThuc) {
-                alert("Vui lòng nhập tên cột và công thức!");
-                return;
-            }
-
-            let loiXayRa = false;
-            // Sap xep ten cot tu dai den ngan de tranh loi thay the chuoi con
-            let cotSapXep = [...tatCaCotExcel].sort((a, b) => b.length - a.length);
-
-            let danhSachSuaMoi = duLieuGoc.map(hang => {
-                let hangMoi = { ...hang };
-                let chuoiToanHoc = congThuc;
-                
+    // ================= ADMIN: NẠP & XUẤT TÙY BIẾN =================
+    function readExcelFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
                 try {
-                    cotSapXep.forEach(cot => {
-                        if (cot !== tenCot) { // Khong tu thay the chinh no
-                            let giaTriLay = hangMoi[cot] !== undefined ? hangMoi[cot] : 0;
-                            
-                            // ĐÃ CẬP NHẬT: Xóa khoảng trắng, biến đổi phẩy thành chấm để linh hoạt mọi loại dữ liệu nhập
-                            let stringVal = String(giaTriLay).replace(/\s/g, '').replace(/,/g, '.');
-                            let parsedNum = parseFloat(stringVal);
-                            if (isNaN(parsedNum)) parsedNum = 0;
-                            
-                            // Boc gia tri trong dau ngoac de dam bao an toan phep toan am duong
-                            chuoiToanHoc = chuoiToanHoc.split(cot).join(`(${parsedNum})`);
-                        }
-                    });
-                    
-                    let ketQuaTinh = eval(chuoiToanHoc);
-                    if (isFinite(ketQuaTinh)) {
-                        ketQuaTinh = Math.round(ketQuaTinh * 1000) / 1000;
-                    } else {
-                        ketQuaTinh = 0;
-                    }
-                    
-                    hangMoi[tenCot] = ketQuaTinh;
-
-                    // Xoa du lieu chinh sua thu cong cua cot nay (neu co) vi da dung cong thuc
-                    if (hangMoi._thongTinSua && hangMoi._thongTinSua[tenCot] !== undefined) {
-                        delete hangMoi._thongTinSua[tenCot];
-                    }
-                } catch(e) {
-                    hangMoi[tenCot] = "Lỗi CT";
-                    loiXayRa = true;
-                }
-                return hangMoi;
-            });
-
-            if (loiXayRa) {
-                if(!confirm("Có lỗi phát sinh khi tính toán ở một số dòng (có thể do sai công thức hoặc tên biến). Bạn có chắc chắn muốn lưu?")) {
-                    return;
-                }
-            }
-
-            if (!tatCaCotExcel.includes(tenCot)) {
-                tatCaCotExcel.push(tenCot);
-            }
-            
-            duLieuGoc = danhSachSuaMoi;
-            
-            // Luu them chuoi cong thuc vao cau hinh cot
-            if (cauHinhCot[tenCot]) {
-                cauHinhCot[tenCot].congThuc = congThuc;
-                cauHinhCot[tenCot].choSua = false; // Cot cong thuc khong the sua thu cong
-            } else {
-                cauHinhCot[tenCot] = { hienThi: true, choSua: false, laCotAn: false, congThuc: congThuc };
-            }
-
-            const danhSachLuuDayLen = duLieuGoc.map(hang => {
-                let obj = { ...hang };
-                delete obj._viTriGoc;
-                return obj;
-            });
-
-            try {
-                await set(duongDanDuLieu, { thuTu: tatCaCotExcel, danhSach: danhSachLuuDayLen });
-                await set(duongDanCaiDatCot, cauHinhCot);
-                
-                alert("Cài đặt cột công thức thành công!");
-                lopPhu.style.display = 'none';
-                khungThemCotCongThuc.style.display = 'none';
-            } catch (loi) {
-                console.error(loi);
-                alert("Lỗi khi đẩy dữ liệu lên hệ thống!");
-            }
-        });
-
-        nutCaiDatDemNguoc.addEventListener('click', () => {
-            document.getElementById('oTrangThaiDemNguoc').checked = duLieuDemNguoc.trangThai || false;
-            document.getElementById('oMoTaTrenDemNguoc').value = duLieuDemNguoc.moTaTren || "CÒN LẠI";
-            document.getElementById('oMoTaDuoiDemNguoc').value = duLieuDemNguoc.moTaDuoi || "";
-            document.getElementById('oThoiGianDemNguoc').value = duLieuDemNguoc.thoiGian || "";
-            
-            document.getElementById('lopPhuModal').style.display = 'block';
-            document.getElementById('khungSuaDemNguoc').style.display = 'block';
-        });
-
-        document.getElementById('nutDongSuaDemNguoc').addEventListener('click', () => {
-            document.getElementById('lopPhuModal').style.display = 'none';
-            document.getElementById('khungSuaDemNguoc').style.display = 'none';
-        });
-
-        document.getElementById('nutLuuDemNguoc').addEventListener('click', () => {
-            const trangThaiChon = document.getElementById('oTrangThaiDemNguoc').checked;
-            const moTaTrenNhan = document.getElementById('oMoTaTrenDemNguoc').value.trim();
-            const moTaDuoiNhan = document.getElementById('oMoTaDuoiDemNguoc').value.trim();
-            const thoiGianChon = document.getElementById('oThoiGianDemNguoc').value;
-
-            if (trangThaiChon && !thoiGianChon) {
-                alert("Vui lòng chọn thời gian đích đến để đếm ngược!");
-                return;
-            }
-
-            set(duongDanDemNguoc, {
-                trangThai: trangThaiChon,
-                moTaTren: moTaTrenNhan,
-                moTaDuoi: moTaDuoiNhan,
-                thoiGian: thoiGianChon
-            }).then(() => {
-                alert("Cập nhật đếm ngược thành công!");
-                document.getElementById('lopPhuModal').style.display = 'none';
-                document.getElementById('khungSuaDemNguoc').style.display = 'none';
-            }).catch((loi) => {
-                alert("Lỗi khi lưu cài đặt đếm ngược!");
-                console.error(loi);
-            });
-        });
-
-        nutDoiTieuDe.addEventListener('click', () => {
-            document.getElementById('oNhapDong1').value = duLieuTieuDe.dong1 || "";
-            document.getElementById('oNhapDong2').value = duLieuTieuDe.dong2 || "";
-            document.getElementById('oNhapDong3').value = duLieuTieuDe.dong3 || "";
-            
-            document.getElementById('lopPhuModal').style.display = 'block';
-            document.getElementById('khungSuaTieuDe').style.display = 'block';
-        });
-
-        document.getElementById('nutDongSuaTieuDe').addEventListener('click', () => {
-            document.getElementById('lopPhuModal').style.display = 'none';
-            document.getElementById('khungSuaTieuDe').style.display = 'none';
-        });
-
-        document.getElementById('nutLuuTieuDe').addEventListener('click', () => {
-            const d1 = document.getElementById('oNhapDong1').value;
-            const d2 = document.getElementById('oNhapDong2').value;
-            const d3 = document.getElementById('oNhapDong3').value; 
-
-            set(duongDanTieuDe, { dong1: d1, dong2: d2, dong3: d3 })
-                .then(() => {
-                    alert("Cập nhật tiêu đề thành công!");
-                    document.getElementById('lopPhuModal').style.display = 'none';
-                    document.getElementById('khungSuaTieuDe').style.display = 'none';
-                })
-                .catch((loi) => {
-                    alert("Lỗi khi lưu tiêu đề!");
-                    console.error(loi);
-                });
-        });
-
-        nutDoiLinkThongBao.addEventListener('click', () => {
-            document.getElementById('oNhapNoiDungLinkThongBao').value = duLieuLinkThongBao.noiDung || "";
-            document.getElementById('oNhapUrlLinkThongBao').value = duLieuLinkThongBao.url || "";
-            document.getElementById('lopPhuModal').style.display = 'block';
-            document.getElementById('khungSuaLinkThongBao').style.display = 'block';
-        });
-
-        document.getElementById('nutDongSuaLinkThongBao').addEventListener('click', () => {
-            document.getElementById('lopPhuModal').style.display = 'none';
-            document.getElementById('khungSuaLinkThongBao').style.display = 'none';
-        });
-
-        document.getElementById('nutLuuLinkThongBao').addEventListener('click', () => {
-            const nd = document.getElementById('oNhapNoiDungLinkThongBao').value;
-            const link = document.getElementById('oNhapUrlLinkThongBao').value; 
-
-            set(duongDanLinkThongBao, { noiDung: nd, url: link })
-                .then(() => {
-                    alert("Cập nhật nội dung & link thành công!");
-                    document.getElementById('lopPhuModal').style.display = 'none';
-                    document.getElementById('khungSuaLinkThongBao').style.display = 'none';
-                })
-                .catch((loi) => {
-                    alert("Lỗi khi lưu dữ liệu!");
-                    console.error(loi);
-                });
-        });
-
-        nutDoiMaSo.addEventListener('click', () => {
-            document.getElementById('hienThiTienTo').textContent = tienToHienTai;
-            document.getElementById('oNhapMaSoMoi').value = "";
-            document.getElementById('lopPhuModal').style.display = 'block';
-            document.getElementById('khungSuaMaSo').style.display = 'block';
-        });
-
-        document.getElementById('nutDongSuaMaSo').addEventListener('click', () => {
-            document.getElementById('lopPhuModal').style.display = 'none';
-            document.getElementById('khungSuaMaSo').style.display = 'none';
-        });
-
-        document.getElementById('nutLuuMaSo').addEventListener('click', async () => {
-            const maSoMoi = document.getElementById('oNhapMaSoMoi').value.trim();
-            if (!maSoMoi) {
-                alert("Vui lòng nhập mã số mới!");
-                return;
-            }
-            
-            if (maSoMoi === maSoHienTai) {
-                alert("Mã số mới phải khác mã số hiện tại!");
-                return;
-            }
-
-            try {
-                await set(ref(coSoDuLieu, 'danh_sach_truong/' + maTruongHienTai + '/maSo'), maSoMoi);
-                
-                alert("Đổi mã số thành công! Mã đăng nhập mới của bạn là: " + tienToHienTai + maSoMoi);
-                maSoHienTai = maSoMoi; 
-                
-                document.getElementById('lopPhuModal').style.display = 'none';
-                document.getElementById('khungSuaMaSo').style.display = 'none';
-            } catch (loi) {
-                console.error(loi);
-                alert("Có lỗi xảy ra khi đổi mã số!");
-            }
-        });
-
-        nutTaiDuLieu.addEventListener('click', () => {
-            if (duLieuGoc.length === 0) {
-                alert("Chưa có dữ liệu để tải!");
-                return;
-            }
-
-            const duLieuXuat = duLieuGoc.map(hang => {
-                let hangMoi = {};
-                const tatCaCotThucTe = Object.keys(hang).filter(k => k !== "_viTriGoc" && k !== "_thongTinSua" && k !== "_daSua");
-                
-                if(cotAn) hangMoi[cotAn] = hang[cotAn];
-
-                tatCaCotThucTe.forEach(cot => {
-                    if (cot !== cotAn) {
-                        if (hang._thongTinSua && hang._thongTinSua[cot] !== undefined) {
-                            hangMoi[cot] = hang._thongTinSua[cot];
-                        } else {
-                            hangMoi[cot] = hang[cot];
-                        }
-                    }
-                });
-                return hangMoi;
-            });
-
-            const trangTinh = XLSX.utils.json_to_sheet(duLieuXuat);
-            const bangTinh = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(bangTinh, trangTinh, "DuLieuCapNhat");
-            XLSX.writeFile(bangTinh, "DanhSachHocSinh_CapNhat.xlsx");
-        });
-
-        nutTaiLen.addEventListener('click', () => {
-            const file = fileNhap.files[0];
-            if (!file) {
-                alert("Vui lòng chọn file Excel trước khi nạp!");
-                return;
-            }
-
-            trangThai.textContent = "Đang xử lý...";
-            const boDoc = new FileReader();
-            
-            boDoc.onload = (e) => {
-                const duLieu = new Uint8Array(e.target.result);
-                const bangTinh = XLSX.read(duLieu, { type: 'array' });
-                const tenTrangDau = bangTinh.SheetNames[0];
-                const trangDuLieu = bangTinh.Sheets[tenTrangDau];
-                
-                const mangHaiChieu = XLSX.utils.sheet_to_json(trangDuLieu, { header: 1 });
-                let thuTuCot = [];
-                if (mangHaiChieu.length > 0) {
-                    thuTuCot = mangHaiChieu[0].filter(cot => cot !== undefined && cot !== null && String(cot).trim() !== "");
-                }
-
-                const jsonDuLieu = XLSX.utils.sheet_to_json(trangDuLieu, { defval: "" });
-
-                if (jsonDuLieu.length > 0) {
-                    const duLieuDayLen = {
-                        thuTu: thuTuCot,
-                        danhSach: jsonDuLieu
-                    };
-
-                    set(duongDanDuLieu, duLieuDayLen)
-                        .then(() => {
-                            trangThai.textContent = "Nạp dữ liệu thành công!";
-                            fileNhap.value = ""; 
-                            setTimeout(() => { trangThai.textContent = ""; }, 3000);
-                        })
-                        .catch((loi) => {
-                            trangThai.textContent = "Lỗi nạp dữ liệu!";
-                            console.error(loi);
-                        });
-                } else {
-                    trangThai.textContent = "File Excel không có dữ liệu.";
-                }
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheetName = workbook.SheetNames[0];
+                    const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+                    resolve(jsonData);
+                } catch (err) { reject(err); }
             };
-            boDoc.readAsArrayBuffer(file);
+            reader.onerror = (err) => reject(err);
+            reader.readAsArrayBuffer(file);
         });
+    }
 
-        function taoKhungBang() {
-            let giaTriLocHienTai = {};
-            const cacOLocCu = document.querySelectorAll('.oLoc');
-            cacOLocCu.forEach(oNhap => {
-                if (oNhap.value.trim() !== "") {
-                    giaTriLocHienTai[oNhap.dataset.cot] = oNhap.value;
+    async function clearCollection(collectionName) {
+        const snapshot = await db.collection(collectionName).get();
+        if(snapshot.empty) return;
+        const batches = [];
+        let batch = db.batch();
+        let count = 0;
+        snapshot.docs.forEach((doc) => {
+            batch.delete(doc.ref);
+            if (++count === 500) { batches.push(batch.commit()); batch = db.batch(); count = 0; }
+        });
+        if (count > 0) batches.push(batch.commit());
+        await Promise.all(batches);
+    }
+
+    async function processUpload(inputId, collectionName) {
+        const fileInput = document.getElementById(inputId);
+        const file = fileInput.files[0];
+        if (!file) { alert("Vui lòng chọn file Excel!"); return; }
+
+        try {
+            toggleLoading(true, 'Đang đọc dữ liệu Excel...');
+            const jsonData = await readExcelFile(file);
+            if (jsonData.length === 0) throw new Error("File rỗng!");
+
+            if(collectionName === 'students') {
+                const headers = Object.keys(jsonData[0]);
+                if(!headers.includes('Mã')) throw new Error("File bắt buộc phải có cột tên là 'Mã' để làm ID đăng nhập.");
+                await db.collection('config').doc('student_fields').set({ fields: headers });
+                dynamicFields = headers;
+            }
+
+            toggleLoading(true, `Đang xóa dữ liệu cũ (${collectionName})...`);
+            await clearCollection(collectionName);
+
+            toggleLoading(true, `Đang nạp ${jsonData.length} bản ghi...`);
+            const batches = [];
+            let batch = db.batch();
+            let count = 0;
+
+            jsonData.forEach(item => {
+                let docId = (collectionName === 'classes' && item['Lớp']) ? String(item['Lớp']) :
+                            (collectionName === 'combos' && item['Mã TH môn']) ? String(item['Mã TH môn']) :
+                            (collectionName === 'students' && item['Mã']) ? String(item['Mã']) : null;
+                if(docId) {
+                    batch.set(db.collection(collectionName).doc(docId), item);
+                    if (++count === 500) { batches.push(batch.commit()); batch = db.batch(); count = 0; }
                 }
             });
+            if (count > 0) batches.push(batch.commit());
+            await Promise.all(batches);
+            
+            if(collectionName === 'students') allStudentsCache = [];
 
-            let html = '<table><thead><tr>';
-            
-            cacCotHienThi.forEach(cot => {
-                html += `<th>${cot}</th>`;
-            });
-            html += '<th style="text-align:center;">Thao tác</th></tr><tr>';
-            
-            cacCotHienThi.forEach(cot => {
-                html += `<th><input type="text" class="oLoc" data-cot="${cot}" placeholder="Lọc..."></th>`;
-            });
-            html += '<th></th></tr></thead><tbody id="thanBang"></tbody></table>';
-            
-            khungBang.innerHTML = html;
-
-            const cacOLoc = document.querySelectorAll('.oLoc');
-            cacOLoc.forEach(oNhap => {
-                if (giaTriLocHienTai[oNhap.dataset.cot]) {
-                    oNhap.value = giaTriLocHienTai[oNhap.dataset.cot];
-                }
-                oNhap.addEventListener('input', locDuLieu);
-            });
+            toggleLoading(false);
+            alert(`✅ Tải lên THÀNH CÔNG!`);
+            fileInput.value = ''; 
+        } catch (error) {
+            toggleLoading(false);
+            alert('Lỗi: ' + error.message);
         }
+    }
 
-        function capNhatThanBang(duLieuHienThi, chuaCoDieuKien = false) {
-            const thanBang = document.getElementById('thanBang');
-            if (!thanBang) return;
-
-            const soCotBang = cacCotHienThi.length + 1;
-
-            if (chuaCoDieuKien) {
-                thanBang.innerHTML = `<tr><td colspan="${soCotBang}" style="text-align:center; color: #555; font-style: italic;">Vui lòng nhập thông tin vào ít nhất 1 ô lọc để xem dữ liệu.</td></tr>`;
-                return;
-            }
-
-            if (!duLieuHienThi || duLieuHienThi.length === 0) {
-                thanBang.innerHTML = `<tr><td colspan="${soCotBang}" style="text-align:center; color: red;">Không tìm thấy dữ liệu phù hợp.</td></tr>`;
-                return;
-            }
-
-            let html = '';
-            duLieuHienThi.forEach(hang => {
-                html += '<tr>';
-                cacCotHienThi.forEach(cot => {
-                    const giaTriGoc = hang[cot] !== undefined ? hang[cot] : '';
-                    const giaTriSua = (hang._thongTinSua && hang._thongTinSua[cot] !== undefined) ? hang._thongTinSua[cot] : null;
-                    const giaTriHienThi = giaTriSua !== null ? giaTriSua : giaTriGoc;
-                    
-                    const lopHighlight = (giaTriSua !== null && giaTriSua !== giaTriGoc) ? ' class="o-da-sua"' : '';
-                    html += `<td${lopHighlight}>${giaTriHienThi}</td>`;
-                });
-
-                html += '<td style="text-align:center; vertical-align:middle;">';
-                if (choPhepSuaHienTai) {
-                    html += `<button class="nut-sua-dong" data-vitri="${hang._viTriGoc}">Sửa</button>`;
-                }
-                html += '</td>';
-
-                html += '</tr>';
-            });
-            thanBang.innerHTML = html;
-        }
-
-        function locDuLieu() {
-            const cacOLoc = document.querySelectorAll('.oLoc');
-            let dieuKien = {};
-            let coDieuKien = false;
-
-            cacOLoc.forEach(oNhap => {
-                const giaTri = oNhap.value.trim().toLowerCase();
-                if (giaTri) {
-                    dieuKien[oNhap.dataset.cot] = giaTri;
-                    coDieuKien = true;
-                }
-            });
-
-            if (!coDieuKien) {
-                capNhatThanBang([], true);
-                return;
-            }
-
-            const duLieuDaLoc = duLieuGoc.filter(hang => {
-                for (let cot in dieuKien) {
-                    const giaTriGoc = hang[cot] !== undefined ? String(hang[cot]) : "";
-                    const giaTriSua = (hang._thongTinSua && hang._thongTinSua[cot] !== undefined) ? String(hang._thongTinSua[cot]) : null;
-                    const giaTriThucTe = (giaTriSua !== null ? giaTriSua : giaTriGoc).toLowerCase();
-
-                    if (!giaTriThucTe.includes(dieuKien[cot])) {
-                        return false; 
-                    }
-                }
-                return true;
-            });
-
-            capNhatThanBang(duLieuDaLoc, false);
+    async function openExportModal() {
+        await fetchFieldConfigs();
+        
+        let allPossibleFields = [...dynamicFields];
+        if(!allPossibleFields.includes('Nguyện vọng chuyển lớp')) {
+            allPossibleFields.push('Nguyện vọng chuyển lớp');
         }
         
-        khungBang.addEventListener('click', async (suKien) => {
-            if (suKien.target.classList.contains('nut-sua-dong') && !suKien.target.classList.contains('nut-sua-truong') && !suKien.target.classList.contains('nut-xoa-truong')) {
-                if (!choPhepSuaHienTai) {
-                    alert("Chức năng sửa dữ liệu hiện đang bị khóa!");
-                    return;
-                }
+        exportSelectedFields = [...allPossibleFields]; 
+        renderExportUI(allPossibleFields);
+        
+        new bootstrap.Modal(document.getElementById('exportModal')).show();
+    }
 
-                const viTri = suKien.target.getAttribute('data-vitri');
-                const hangThaoTac = duLieuGoc.find(h => String(h._viTriGoc) === String(viTri));
+    function renderExportUI(allPossibleFields) {
+        const availContainer = document.getElementById('export-available-fields');
+        availContainer.innerHTML = '';
+        allPossibleFields.forEach(f => {
+            if(!exportSelectedFields.includes(f)) {
+                availContainer.innerHTML += `<span class="badge bg-secondary p-2 cursor-pointer export-field-badge" onclick="addExportField('${f}')">+ ${f}</span>`;
+            }
+        });
+
+        const selectedContainer = document.getElementById('export-selected-fields');
+        selectedContainer.innerHTML = '';
+        if(exportSelectedFields.length === 0) {
+            selectedContainer.innerHTML = '<li class="list-group-item text-muted text-center py-3 fst-italic">Chưa có cột nào được chọn</li>';
+        } else {
+            exportSelectedFields.forEach((f, idx) => {
+                selectedContainer.innerHTML += `
+                    <li class="list-group-item d-flex justify-content-between align-items-center p-2 mb-1 border rounded bg-light">
+                        <span><span class="badge bg-dark me-2">${idx + 1}</span> ${f}</span>
+                        <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="removeExportField('${f}')">✕</button>
+                    </li>
+                `;
+            });
+        }
+    }
+
+    function addExportField(field) {
+        if(!exportSelectedFields.includes(field)) {
+            exportSelectedFields.push(field);
+            let all = [...dynamicFields];
+            if(!all.includes('Nguyện vọng chuyển lớp')) all.push('Nguyện vọng chuyển lớp');
+            renderExportUI(all);
+        }
+    }
+
+    function removeExportField(field) {
+        exportSelectedFields = exportSelectedFields.filter(f => f !== field);
+        let all = [...dynamicFields];
+        if(!all.includes('Nguyện vọng chuyển lớp')) all.push('Nguyện vọng chuyển lớp');
+        renderExportUI(all);
+    }
+
+    function clearExportFields() {
+        exportSelectedFields = [];
+        let all = [...dynamicFields];
+        if(!all.includes('Nguyện vọng chuyển lớp')) all.push('Nguyện vọng chuyển lớp');
+        renderExportUI(all);
+    }
+
+    async function executeExport() {
+        if(exportSelectedFields.length === 0) { alert("Vui lòng chọn ít nhất 1 cột để xuất dữ liệu học sinh!"); return; }
+
+        try {
+            bootstrap.Modal.getInstance(document.getElementById('exportModal')).hide();
+            toggleLoading(true, 'Đang gom dữ liệu, vui lòng chờ...');
+            const wb = XLSX.utils.book_new();
+
+            const clsSnap = await db.collection('classes').get();
+            const clsData = []; clsSnap.forEach(d => clsData.push(d.data()));
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(clsData), "Thông tin Lớp");
+
+            const cbSnap = await db.collection('combos').get();
+            const cbData = []; cbSnap.forEach(d => cbData.push(d.data()));
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(cbData), "Tổ Hợp Môn");
+
+            const stSnap = await db.collection('students').get();
+            const stData = []; stSnap.forEach(d => stData.push(d.data()));
+            
+            stData.sort((a, b) => {
+                let classA = (a['Lớp'] || '').toString().trim();
+                let classB = (b['Lớp'] || '').toString().trim();
+                let cmp = classA.localeCompare(classB);
+                if (cmp !== 0) return cmp;
                 
-                if (!hangThaoTac) return;
+                let sttA = isNaN(parseInt(a['STT'])) ? 9999 : parseInt(a['STT']);
+                let sttB = isNaN(parseInt(b['STT'])) ? 9999 : parseInt(b['STT']);
+                return sttA - sttB;
+            });
 
-                const thongTinBaoMat = await nhapBaoMat("xacthuc");
-                if (!thongTinBaoMat || thongTinBaoMat.trim() === "") return;
+            const finalStData = stData.map(s => {
+                let row = {};
+                exportSelectedFields.forEach(f => { row[f] = s[f] !== undefined ? s[f] : ''; });
+                return row;
+            });
 
-                if (String(hangThaoTac[cotAn]).trim() !== thongTinBaoMat.trim()) {
-                    alert("Thông tin đối chiếu không chính xác!");
-                    return;
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(finalStData), "Học Sinh");
+
+            XLSX.writeFile(wb, "DuLieuTruong_THPT_TranPhu.xlsx");
+            toggleLoading(false);
+        } catch (error) { toggleLoading(false); alert('Lỗi xuất dữ liệu: ' + error.message); }
+    }
+
+    // ================= ADMIN: CẤU HÌNH CỘT (AUTO-SAVE) =================
+    async function loadAdminConfigFields() {
+        await fetchFieldConfigs();
+        const tbody = document.getElementById('admin-config-fields-body');
+        tbody.innerHTML = '';
+        
+        document.getElementById('perm-transfer').checked = fieldPermissions['allowTransfer'] || false;
+
+        dynamicFields.forEach(f => {
+            const isVisible = fieldPermissions[f]?.visible || false;
+            const isEditable = fieldPermissions[f]?.editable || false;
+            
+            const forceVisible = (f === 'Lớp' || f === 'Họ và tên' || f === 'STT');
+            const forceHidden = (f === 'Mã' || f === 'Nguyện vọng chuyển lớp'); 
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td class="fw-medium">${f} 
+                        ${forceVisible ? '<span class="badge bg-secondary ms-2">Bắt buộc hiện</span>' : ''}
+                        ${forceHidden ? '<span class="badge bg-danger ms-2">Bảo mật (Khóa ẩn)</span>' : ''}
+                    </td>
+                    <td class="text-center">
+                        <input class="form-check-input perm-vis" type="checkbox" data-field="${f}" 
+                        ${(isVisible || forceVisible) && !forceHidden ? 'checked' : ''} 
+                        ${forceVisible || forceHidden ? 'disabled' : ''} onchange="saveAdminConfigFields()">
+                    </td>
+                    <td class="text-center">
+                        <input class="form-check-input perm-edit" type="checkbox" data-field="${f}" ${isEditable ? 'checked' : ''} onchange="saveAdminConfigFields()">
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    async function saveAdminConfigFields() {
+        const newPerms = {};
+        document.querySelectorAll('.perm-vis').forEach(el => {
+            const f = el.getAttribute('data-field');
+            if(!newPerms[f]) newPerms[f] = {};
+            newPerms[f].visible = el.checked;
+        });
+        document.querySelectorAll('.perm-edit').forEach(el => {
+            const f = el.getAttribute('data-field');
+            if(!newPerms[f]) newPerms[f] = {};
+            newPerms[f].editable = el.checked;
+        });
+
+        newPerms['allowTransfer'] = document.getElementById('perm-transfer').checked;
+
+        try {
+            await db.collection('config').doc('permissions').set({ perms: newPerms }, {merge: true});
+            fieldPermissions = newPerms;
+            const statusEl = document.getElementById('auto-save-status');
+            if(statusEl) {
+                statusEl.style.opacity = 1;
+                setTimeout(() => { statusEl.style.opacity = 0; }, 2000);
+            }
+        } catch (e) { alert("Lỗi lưu tự động: " + e.message); }
+    }
+
+    async function resetTransferData() {
+        if(!confirm("⚠️ CẢNH BÁO: Hành động này sẽ XÓA TOÀN BỘ dữ liệu đăng ký 'Nguyện vọng chuyển lớp' của tất cả học sinh Khối 10 hiện tại. Có chắc chắn tiếp tục?")) return;
+        try {
+            toggleLoading(true, "Đang tiến hành Reset dữ liệu...");
+            const snap = await db.collection('students').get();
+            const batches = [];
+            let batch = db.batch();
+            let count = 0;
+            snap.forEach(doc => {
+                let data = doc.data();
+                if(data['Lớp'] && String(data['Lớp']).startsWith('10') && data['Nguyện vọng chuyển lớp']) {
+                    batch.update(doc.ref, {'Nguyện vọng chuyển lớp': firebase.firestore.FieldValue.delete()});
+                    if(++count === 500) { batches.push(batch.commit()); batch = db.batch(); count = 0; }
+                }
+            });
+            if(count > 0) batches.push(batch.commit());
+            await Promise.all(batches);
+            allStudentsCache = []; 
+            toggleLoading(false);
+            alert("✅ Đã xóa toàn bộ nguyện vọng chuyển lớp thành công!");
+        } catch (e) { toggleLoading(false); alert("Lỗi: " + e.message); }
+    }
+
+    // ================= ADMIN: QUẢN LÝ BẢNG & THÊM CỘT DỮ LIỆU =================
+    async function loadAdminDataTable() {
+        const collection = document.getElementById('admin-data-collection').value;
+        const tbody = document.getElementById('admin-table-body');
+        const thead = document.getElementById('admin-table-head');
+        const btnAddCol = document.getElementById('btn-add-column');
+        
+        // Hiện nút Thêm Cột nếu đang xem bảng Học sinh
+        btnAddCol.style.display = (collection === 'students') ? 'block' : 'none';
+
+        tbody.innerHTML = '<tr><td colspan="20" class="text-center py-4">Đang tải dữ liệu...</td></tr>';
+        document.getElementById('admin-data-search').value = '';
+
+        await fetchFieldConfigs();
+        let cols = collection === 'students' ? dynamicFields : tableSchemas[collection];
+        
+        if(collection === 'students' && !cols.includes('Nguyện vọng chuyển lớp')) cols.push('Nguyện vọng chuyển lớp');
+
+        let headHtml = '<tr>';
+        cols.forEach(c => headHtml += `<th>${c}</th>`);
+        headHtml += `<th class="text-center sticky-end bg-light">Hành động</th></tr>`;
+        thead.innerHTML = headHtml;
+
+        try {
+            const snap = await db.collection(collection).get();
+            adminDataCache = [];
+            snap.forEach(doc => {
+                let data = doc.data(); data._id = doc.id; 
+                adminDataCache.push(data);
+            });
+            renderAdminTable(adminDataCache, cols);
+        } catch (error) { tbody.innerHTML = `<tr><td colspan="20" class="text-danger">Lỗi: ${error.message}</td></tr>`; }
+    }
+
+    // [TÍNH NĂNG MỚI] Thêm Cột
+    async function addNewStudentColumn() {
+        let newCol = prompt("Nhập tên trường dữ liệu mới (VD: Số điện thoại, Địa chỉ, Sở thích...):");
+        if (!newCol) return;
+        newCol = newCol.trim();
+        if (newCol === '') return;
+        
+        if (dynamicFields.includes(newCol) || newCol === 'Nguyện vọng chuyển lớp') {
+            alert("Cột dữ liệu này đã tồn tại!");
+            return;
+        }
+
+        try {
+            toggleLoading(true, "Đang thêm trường dữ liệu mới...");
+            dynamicFields.push(newCol);
+            await db.collection('config').doc('student_fields').set({ fields: dynamicFields }, { merge: true });
+            
+            // Khởi tạo quyền mặc định: Khóa hiển thị, Khóa sửa
+            fieldPermissions[newCol] = { visible: false, editable: false };
+            await db.collection('config').doc('permissions').set({ perms: fieldPermissions }, { merge: true });
+            
+            await loadAdminDataTable();
+            toggleLoading(false);
+            alert(`Đã thêm cột "${newCol}" thành công! Thầy/cô có thể qua tab "Quyền & Cấu Hình" để thiết lập hiển thị/sửa.`);
+        } catch (e) {
+            toggleLoading(false);
+            alert("Lỗi khi thêm cột: " + e.message);
+        }
+    }
+
+    function renderAdminTable(dataArray, cols) {
+        const tbody = document.getElementById('admin-table-body');
+        tbody.innerHTML = '';
+        if(dataArray.length === 0) { tbody.innerHTML = `<tr><td colspan="${cols.length + 1}" class="text-center text-muted py-4">Không có dữ liệu</td></tr>`; return; }
+
+        if(cols.includes('STT')) dataArray.sort((a,b) => (isNaN(parseInt(a['STT']))?9999:parseInt(a['STT'])) - (isNaN(parseInt(b['STT']))?9999:parseInt(b['STT'])));
+
+        dataArray.slice(0, 100).forEach(row => { 
+            let tr = '<tr>';
+            cols.forEach(c => {
+                let val = row[c] || '';
+                if(val.length > 50) val = val.substring(0, 50) + '...'; 
+                tr += `<td>${val}</td>`;
+            });
+            tr += `<td class="text-center bg-light">
+                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openAdminEditModal('${row._id}')">Sửa</button>
+                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteAdminRecord('${row._id}')">Xóa</button>
+                   </td></tr>`;
+            tbody.innerHTML += tr;
+        });
+        if(dataArray.length > 100) tbody.innerHTML += `<tr><td colspan="${cols.length + 1}" class="text-center text-muted fst-italic py-3">Đang hiển thị 100 kết quả đầu. Hãy dùng ô Tìm kiếm để xem thêm.</td></tr>`;
+    }
+
+    function filterAdminDataTable() {
+        const query = normalizeString(document.getElementById('admin-data-search').value);
+        const collection = document.getElementById('admin-data-collection').value;
+        let cols = collection === 'students' ? dynamicFields : tableSchemas[collection];
+        if(collection === 'students' && !cols.includes('Nguyện vọng chuyển lớp')) cols.push('Nguyện vọng chuyển lớp');
+        
+        if(!query) { renderAdminTable(adminDataCache, cols); return; }
+
+        const filtered = adminDataCache.filter(row => {
+            for(let c of cols) if(normalizeString(row[c]).includes(query)) return true;
+            return false;
+        });
+        renderAdminTable(filtered, cols);
+    }
+
+    function openAdminEditModal(docId) {
+        const collection = document.getElementById('admin-data-collection').value;
+        const rowData = adminDataCache.find(x => x._id === docId);
+        if(!rowData) return;
+        
+        currentAdminDocId = docId;
+        const container = document.getElementById('admin-edit-form-container');
+        let cols = collection === 'students' ? dynamicFields : tableSchemas[collection];
+        if(collection === 'students' && !cols.includes('Nguyện vọng chuyển lớp')) cols.push('Nguyện vọng chuyển lớp');
+        
+        let formHtml = '';
+        cols.forEach(c => {
+            const isKey = (collection === 'students' && c === 'Mã') || (collection === 'classes' && c === 'Lớp') || (collection === 'combos' && c === 'Mã TH môn');
+            formHtml += `
+                <div class="mb-2">
+                    <label class="form-label small fw-bold">${c} ${isKey ? '<span class="text-danger">*Khóa</span>' : ''}</label>
+                    ${rowData[c] && rowData[c].length > 100 ? 
+                        `<textarea class="form-control" id="edit-modal-${c}" rows="3" ${isKey ? 'readonly' : ''}>${rowData[c]}</textarea>` : 
+                        `<input type="text" class="form-control" id="edit-modal-${c}" value="${rowData[c] || ''}" ${isKey ? 'readonly style="background:#e9ecef"' : ''}>`
+                    }
+                </div>
+            `;
+        });
+        container.innerHTML = formHtml;
+        new bootstrap.Modal(document.getElementById('adminEditModal')).show();
+    }
+
+    async function saveAdminEdit() {
+        const collection = document.getElementById('admin-data-collection').value;
+        let cols = collection === 'students' ? dynamicFields : tableSchemas[collection];
+        if(collection === 'students' && !cols.includes('Nguyện vọng chuyển lớp')) cols.push('Nguyện vọng chuyển lớp');
+        
+        const updates = {};
+        cols.forEach(c => { 
+            let val = document.getElementById(`edit-modal-${c}`).value;
+            if (val === '') updates[c] = firebase.firestore.FieldValue.delete();
+            else updates[c] = val;
+        });
+
+        try {
+            toggleLoading(true, "Đang lưu thay đổi...");
+            await db.collection(collection).doc(currentAdminDocId).set(updates, { merge: true });
+            
+            bootstrap.Modal.getInstance(document.getElementById('adminEditModal')).hide();
+            await loadAdminDataTable(); 
+            if(collection === 'students') allStudentsCache = []; 
+            toggleLoading(false);
+        } catch(e) { toggleLoading(false); alert("Lỗi khi lưu: " + e.message); }
+    }
+
+    async function deleteAdminRecord(docId) {
+        if(!confirm(`⚠️ Bạn có chắc chắn muốn xóa bản ghi này?`)) return;
+        const collection = document.getElementById('admin-data-collection').value;
+        try {
+            toggleLoading(true, "Đang xóa...");
+            await db.collection(collection).doc(docId).delete();
+            await loadAdminDataTable();
+            if(collection === 'students') allStudentsCache = []; 
+            toggleLoading(false);
+        } catch(e) { toggleLoading(false); alert("Xóa thất bại: " + e.message); }
+    }
+
+    // ================= ADMIN: THỐNG KÊ =================
+    async function loadAdminStats() {
+        try {
+            toggleLoading(true, "Đang xử lý dữ liệu thống kê...");
+            if(allStudentsCache.length === 0) {
+                const snap = await db.collection('students').get();
+                allStudentsCache = []; snap.forEach(doc => allStudentsCache.push(doc.data()));
+            }
+            renderAdminStats();
+            toggleLoading(false);
+        } catch(e) { toggleLoading(false); alert("Lỗi tải thống kê: " + e.message); }
+    }
+
+    function renderAdminStats() {
+        let statsAll = { total: 0, female: 0, ethnic: 0, femaleEthnic: 0 };
+        let grades = {}; 
+
+        allStudentsCache.forEach(s => {
+            let clsName = (s['Lớp'] || 'Chưa phân lớp').toString().trim();
+            let match = clsName.match(/^\d+/);
+            let gradeName = match ? match[0] : 'Khác';
+
+            if (!grades[gradeName]) grades[gradeName] = { total: 0, female: 0, ethnic: 0, femaleEthnic: 0, classes: {} };
+            if (!grades[gradeName].classes[clsName]) grades[gradeName].classes[clsName] = { total: 0, female: 0, ethnic: 0, femaleEthnic: 0 };
+
+            let gt = (s['Giới tính'] || '').toLowerCase().trim();
+            let dt = (s['Dân tộc'] || '').toLowerCase().trim();
+
+            let isFemale = (gt === 'nữ' || gt === 'nu');
+            let isEthnic = (dt !== '' && dt !== 'kinh');
+
+            grades[gradeName].classes[clsName].total++;
+            if (isFemale) grades[gradeName].classes[clsName].female++;
+            if (isEthnic) grades[gradeName].classes[clsName].ethnic++;
+            if (isFemale && isEthnic) grades[gradeName].classes[clsName].femaleEthnic++;
+
+            grades[gradeName].total++;
+            if (isFemale) grades[gradeName].female++;
+            if (isEthnic) grades[gradeName].ethnic++;
+            if (isFemale && isEthnic) grades[gradeName].femaleEthnic++;
+
+            statsAll.total++;
+            if (isFemale) statsAll.female++;
+            if (isEthnic) statsAll.ethnic++;
+            if (isFemale && isEthnic) statsAll.femaleEthnic++;
+        });
+
+        let tbody = document.getElementById('admin-stat-results');
+        let html = '';
+
+        Object.keys(grades).sort().forEach(g => {
+            Object.keys(grades[g].classes).sort().forEach(c => {
+                let cStats = grades[g].classes[c];
+                html += `<tr><td class="text-start ps-4">${c}</td><td>${cStats.total}</td><td>${cStats.female}</td><td>${cStats.ethnic}</td><td>${cStats.femaleEthnic}</td></tr>`;
+            });
+            let gStats = grades[g];
+            html += `<tr class="table-info fw-bold"><td class="text-start">Tổng Khối ${g}</td><td class="text-primary">${gStats.total}</td><td class="text-danger">${gStats.female}</td><td class="text-success">${gStats.ethnic}</td><td class="text-warning text-dark">${gStats.femaleEthnic}</td></tr>`;
+        });
+
+        html += `<tr class="table-primary fs-6" style="border-top: 3px solid #0d6efd;"><td class="text-start fw-bold text-uppercase">Tổng Toàn Trường</td><td class="fw-bold">${statsAll.total}</td><td class="fw-bold text-danger">${statsAll.female}</td><td class="fw-bold text-success">${statsAll.ethnic}</td><td class="fw-bold text-warning text-dark">${statsAll.femaleEthnic}</td></tr>`;
+        tbody.innerHTML = html;
+    }
+
+    function exportStatsToExcel() {
+        const table = document.getElementById('admin-stat-table');
+        if (!table) { alert("Không tìm thấy bảng dữ liệu!"); return; }
+        try {
+            const wb = XLSX.utils.table_to_book(table, {sheet: "Thống Kê"});
+            XLSX.writeFile(wb, "ThongKe_HocSinh_THPT_TranPhu.xlsx");
+        } catch (e) { alert('Lỗi xuất dữ liệu: ' + e.message); }
+    }
+
+    // ================= GIAO DIỆN KHÁCH =================
+    function switchGuestTab(tabId) {
+        document.getElementById('tab-class').classList.remove('active');
+        document.getElementById('tab-search').classList.remove('active');
+        document.getElementById('pane-class').style.display = 'none';
+        document.getElementById('pane-search').style.display = 'none';
+
+        if(tabId === 'class') {
+            document.getElementById('tab-class').classList.add('active');
+            document.getElementById('pane-class').style.display = 'block';
+        } else {
+            document.getElementById('tab-search').classList.add('active');
+            document.getElementById('pane-search').style.display = 'block';
+            loadAllStudentsForSearch();
+        }
+    }
+
+    async function loadGuestData() {
+        allStudentsCache = [];
+        await fetchFieldConfigs();
+
+        const select = document.getElementById('guest-class-select');
+        select.innerHTML = '<option value="">-- Đang tải... --</option>';
+        try {
+            const snap = await db.collection('classes').get();
+            select.innerHTML = '<option value="">-- Chọn Lớp để xem thông tin --</option>';
+            snap.forEach(doc => { select.innerHTML += `<option value="${doc.id}">${doc.id}</option>`; });
+        } catch (e) { select.innerHTML = '<option value="">Lỗi tải dữ liệu</option>'; }
+        
+        switchGuestTab('class'); 
+    }
+
+    function renderGuestTableHeaders(theadId) {
+        const thead = document.getElementById(theadId);
+        let html = '<tr>';
+        dynamicFields.forEach(f => {
+            if (f === 'Mã' || f === 'Nguyện vọng chuyển lớp') return; 
+            if (fieldPermissions[f]?.visible || f === 'Họ và tên' || f === 'Lớp' || f === 'STT') {
+                html += `<th>${f}</th>`;
+            }
+        });
+        html += '</tr>';
+        thead.innerHTML = html;
+    }
+
+    async function fetchClassDetails() {
+        const className = document.getElementById('guest-class-select').value;
+        const infoDiv = document.getElementById('guest-class-info');
+        if(!className) { infoDiv.style.display = 'none'; return; }
+        
+        renderGuestTableHeaders('guest-table-class-head');
+
+        try {
+            const classDoc = await db.collection('classes').doc(className).get();
+            if(classDoc.exists) {
+                const cData = classDoc.data();
+                document.getElementById('g-teacher').innerText = cData['Giáo viên chủ nhiệm'] || 'N/A';
+                const comboId = cData['Mã TH môn'] || '';
+                document.getElementById('g-combo').innerText = comboId;
+                if(comboId) {
+                    const cbDoc = await db.collection('combos').doc(String(comboId)).get();
+                    if(cbDoc.exists) {
+                        const cbData = cbDoc.data();
+                        document.getElementById('g-mandatory').innerText = cbData['Môn học - hoạt động GD bắt buộc'] || '';
+                        document.getElementById('g-elective').innerText = cbData['Môn tự chọn'] || '';
+                        document.getElementById('g-specialized').innerText = cbData['Các môn có chuyên đề'] || '';
+                    }
+                }
+            }
+
+            const snap = await db.collection('students').where('Lớp', '==', className).get();
+            let arr = []; snap.forEach(d => arr.push(d.data()));
+            arr.sort((a,b) => (isNaN(parseInt(a['STT']))?9999:parseInt(a['STT'])) - (isNaN(parseInt(b['STT']))?9999:parseInt(b['STT'])));
+
+            const tbody = document.getElementById('guest-table-class-body');
+            tbody.innerHTML = '';
+            if(arr.length === 0) tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted">Chưa có dữ liệu</td></tr>';
+            else {
+                arr.forEach(s => {
+                    let tr = '<tr>';
+                    dynamicFields.forEach(f => {
+                        if (f === 'Mã' || f === 'Nguyện vọng chuyển lớp') return; 
+                        if (fieldPermissions[f]?.visible || f === 'Họ và tên' || f === 'Lớp' || f === 'STT') {
+                            tr += `<td>${s[f] || ''}</td>`;
+                        }
+                    });
+                    tr += '</tr>';
+                    tbody.innerHTML += tr;
+                });
+            }
+            infoDiv.style.display = 'block';
+        } catch (e) { alert("Lỗi: " + e.message); }
+    }
+
+    async function forceReloadCache() {
+        toggleLoading(true, 'Đang tải lại dữ liệu mới nhất...');
+        allStudentsCache = []; await loadAllStudentsForSearch(); searchStudent(); 
+        toggleLoading(false);
+    }
+
+    async function loadAllStudentsForSearch() {
+        if(allStudentsCache.length === 0) {
+            try {
+                const snap = await db.collection('students').get();
+                snap.forEach(doc => allStudentsCache.push(doc.data()));
+            } catch (error) {}
+        }
+    }
+
+    function searchStudent() {
+        renderGuestTableHeaders('guest-table-search-head');
+        const rawQuery = document.getElementById('guest-search-input').value;
+        const queryNorm = normalizeString(rawQuery);
+        const queryNoSpace = queryNorm.replace(/\s+/g, '');
+        
+        const tbody = document.getElementById('guest-table-search-body');
+        tbody.innerHTML = '';
+        
+        if (!queryNorm) { tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">Vui lòng nhập tên để tìm kiếm</td></tr>'; return; }
+
+        const results = allStudentsCache.filter(s => {
+            const nameNorm = normalizeString(s['Họ và tên'] || '');
+            const initials = nameNorm.split(/\s+/).map(word => word.charAt(0)).join('');
+            return nameNorm.includes(queryNorm) || (queryNoSpace.length > 0 && initials.includes(queryNoSpace));
+        });
+
+        if (results.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center text-danger py-4">Không tìm thấy học sinh</td></tr>';
+        } else {
+            results.slice(0, 50).forEach(s => {
+                let tr = '<tr>';
+                dynamicFields.forEach(f => {
+                    if (f === 'Mã' || f === 'Nguyện vọng chuyển lớp') return; 
+                    if (fieldPermissions[f]?.visible || f === 'Họ và tên' || f === 'Lớp' || f === 'STT') {
+                        tr += `<td>${f === 'Họ và tên' ? `<b>${s[f]||''}</b>` : (s[f]||'')}</td>`;
+                    }
+                });
+                tr += '</tr>';
+                tbody.innerHTML += tr;
+            });
+        }
+    }
+
+    // ================= CHỨC NĂNG HỌC SINH (KÈM CHUYỂN LỚP) =================
+    async function loginStudent() {
+        const sid = document.getElementById('student-id').value.trim();
+        if(!sid) { alert("Vui lòng nhập mã học sinh/CCCD!"); return; }
+
+        try {
+            await fetchFieldConfigs();
+            const doc = await db.collection('students').doc(sid).get();
+            if (doc.exists) {
+                showView('student-dashboard');
+                const data = doc.data();
+                
+                document.getElementById('s-old-id').value = sid;
+                document.getElementById('s-name-display').innerText = data['Họ và tên'] || 'Không rõ';
+                const studentClass = data['Lớp'];
+                document.getElementById('s-class-display').innerText = studentClass || 'Không rõ';
+                document.getElementById('s-header-info').style.display = 'block';
+                
+                document.getElementById('s-combo-details').style.display = 'none';
+                if (studentClass) {
+                    const classDoc = await db.collection('classes').doc(studentClass).get();
+                    if (classDoc.exists) {
+                        const comboId = classDoc.data()['Mã TH môn'];
+                        document.getElementById('s-combo-id').innerText = comboId || 'Không rõ';
+                        if (comboId) {
+                            const comboDoc = await db.collection('combos').doc(String(comboId)).get();
+                            if (comboDoc.exists) {
+                                document.getElementById('s-combo-mandatory').innerText = comboDoc.data()['Môn học - hoạt động GD bắt buộc'] || '';
+                                document.getElementById('s-combo-elective').innerText = comboDoc.data()['Môn tự chọn'] || '';
+                                document.getElementById('s-combo-specialized').innerText = comboDoc.data()['Các môn có chuyên đề'] || '';
+                                document.getElementById('s-combo-details').style.display = 'block';
+                            }
+                        }
+                    } else {
+                        document.getElementById('s-combo-id').innerText = 'Chưa phân lớp';
+                    }
                 }
 
-                duLieuHangDangSua = JSON.parse(JSON.stringify(hangThaoTac));
-                if (!duLieuHangDangSua._thongTinSua) duLieuHangDangSua._thongTinSua = {};
+                const formContainer = document.getElementById('dynamic-student-form');
+                formContainer.innerHTML = '';
+                let canEdit = false;
+                let allowedFieldsList = [];
 
-                let htmlSua = '';
-                tatCaCotExcel.forEach(cot => {
-                    if (cauHinhCot[cot] && cauHinhCot[cot].choSua) {
-                        const giaTriGoc = duLieuHangDangSua[cot] !== undefined ? duLieuHangDangSua[cot] : '';
-                        const giaTriHienTai = duLieuHangDangSua._thongTinSua[cot] !== undefined ? duLieuHangDangSua._thongTinSua[cot] : giaTriGoc;
+                dynamicFields.forEach(f => {
+                    if (f === 'Nguyện vọng chuyển lớp') return; 
+                    
+                    const isEditable = fieldPermissions[f]?.editable || false;
+                    const isVisible = fieldPermissions[f]?.visible || isEditable || f === 'Mã' || f === 'Họ và tên';
+                    
+                    if (isVisible) {
+                        if(isEditable) { canEdit = true; allowedFieldsList.push(f); }
+                        const val = data[f] || '';
                         
-                        htmlSua += `
-                            <label style="font-weight: bold; display: block;">${cot}</label>
-                            <input type="text" id="inputSua_${cot}" class="nhap-sua" value="${giaTriHienTai}">
-                        `;
+                        let inputHtml = '';
+                        if (f === 'Ý kiến của học sinh' || f.toLowerCase().includes('ý kiến') || f.toLowerCase().includes('ghi chú')) {
+                            inputHtml = `<textarea id="s-dyn-${f}" class="form-control ${isEditable ? '' : 'readonly-field'}" rows="3" ${isEditable ? '' : 'readonly'}>${val}</textarea>`;
+                        } else {
+                            inputHtml = `<input type="text" id="s-dyn-${f}" class="form-control ${isEditable ? '' : 'readonly-field'}" value="${val}" ${isEditable ? '' : 'readonly'}>`;
+                        }
+                        formContainer.innerHTML += `<div class="col-md-6"><label class="form-label fw-semibold small">${f}:</label>${inputHtml}</div>`;
                     }
                 });
 
-                if (htmlSua === '') {
-                    htmlSua = '<p style="color:red; font-style:italic;">Quản trị viên chưa cấp quyền sửa đổi cho bất kỳ cột nào.</p>';
+                const noticeEl = document.getElementById('s-edit-notice');
+                noticeEl.style.display = 'block';
+                if(canEdit) {
+                    noticeEl.className = 'alert alert-info py-2 mb-4 small';
+                    noticeEl.innerHTML = `💡 <strong>Thông báo:</strong> Em được phép cập nhật các thông tin: <span class="fw-bold text-primary">${allowedFieldsList.join(', ')}</span>.`;
+                } else {
+                    noticeEl.className = 'alert alert-secondary py-2 mb-4 small';
+                    noticeEl.innerHTML = `🔒 <strong>Thông báo:</strong> Nhà trường đã khóa cập nhật. Vui lòng liên hệ GVCN nếu có sai sót.`;
+                }
+                document.getElementById('btn-save-student').style.display = canEdit ? 'block' : 'none';
+
+                const isGrade10 = studentClass && String(studentClass).startsWith('10');
+                const transferSection = document.getElementById('s-transfer-section');
+                
+                if(isGrade10 && fieldPermissions['allowTransfer']) {
+                    transferSection.style.display = 'block';
+                    loadTransferClasses(studentClass, data['Nguyện vọng chuyển lớp']);
+                } else {
+                    transferSection.style.display = 'none';
                 }
 
-                document.getElementById('noiDungSua').innerHTML = htmlSua;
-                document.getElementById('lopPhuModal').style.display = 'block';
-                document.getElementById('khungSuaDuLieu').style.display = 'block';
+            } else { alert('Không tìm thấy dữ liệu học sinh với mã này!'); }
+        } catch (e) { alert('Lỗi: ' + e.message); }
+    }
+
+    async function updateStudentInfo() {
+        const oldId = document.getElementById('s-old-id').value;
+        const updates = {};
+        let newId = oldId;
+
+        dynamicFields.forEach(f => {
+            if (f === 'Nguyện vọng chuyển lớp') return;
+            const el = document.getElementById(`s-dyn-${f}`);
+            if (el && !el.readOnly) {
+                updates[f] = el.value.trim();
+                if (f === 'Mã') newId = updates[f];
             }
         });
 
-        document.getElementById('nutDongSua').addEventListener('click', () => {
-            document.getElementById('lopPhuModal').style.display = 'none';
-            document.getElementById('khungSuaDuLieu').style.display = 'none';
-        });
+        if(!newId) { alert("Mã đăng nhập không được để trống!"); return; }
 
-        document.getElementById('nutLuuSua').addEventListener('click', () => {
-            if (!duLieuHangDangSua) return;
+        try {
+            toggleLoading(true, "Đang lưu thay đổi...");
+            if (newId !== oldId) {
+                const checkExist = await db.collection('students').doc(newId).get();
+                if(checkExist.exists) { toggleLoading(false); alert("Mã này đã được sử dụng!"); return; }
 
-            let coThayDoi = false;
-            if (!duLieuHangDangSua._thongTinSua) {
-                duLieuHangDangSua._thongTinSua = {};
+                const oldDoc = await db.collection('students').doc(oldId).get();
+                const newData = { ...oldDoc.data(), ...updates };
+                await db.collection('students').doc(newId).set(newData); 
+                await db.collection('students').doc(oldId).delete();     
+                
+                document.getElementById('s-old-id').value = newId;       
+                toggleLoading(false); alert("Đã cập nhật & đổi Mã thành công!");
+            } else {
+                await db.collection('students').doc(oldId).set(updates, { merge: true });
+                toggleLoading(false); alert('Đã cập nhật thông tin thành công!');
             }
+        } catch (error) { toggleLoading(false); alert('Lỗi: ' + error.message); }
+    }
 
-            tatCaCotExcel.forEach(cot => {
-                const theSua = document.getElementById(`inputSua_${cot}`);
-                if (theSua) {
-                    const giaTriMoi = theSua.value;
-                    const giaTriGoc = duLieuHangDangSua[cot] !== undefined ? String(duLieuHangDangSua[cot]) : "";
+    async function loadTransferClasses(currentClass, currentAspiration) {
+        const tbody = document.getElementById('s-transfer-tbody');
+        tbody.innerHTML = '<tr><td colspan="6">Đang tải danh sách & tính toán sĩ số...</td></tr>';
+        
+        try {
+            const classSnap = await db.collection('classes').get();
+            let grade10Classes = [];
+            classSnap.forEach(d => {
+                if(d.id.startsWith('10')) grade10Classes.push({ id: d.id, combo: d.data()['Mã TH môn'] || '' });
+            });
+            grade10Classes.sort((a,b) => a.id.localeCompare(b.id));
+
+            const hsSnap = await db.collection('students').get();
+            let stats = {};
+            grade10Classes.forEach(c => stats[c.id] = { total: 0, increase: 0, decrease: 0 });
+
+            hsSnap.forEach(d => {
+                let data = d.data();
+                let c = data['Lớp'];
+                if(c && c.startsWith('10')) {
+                    if(!stats[c]) stats[c] = { total:0, increase:0, decrease:0 };
+                    stats[c].total++; 
                     
-                    if (giaTriMoi !== giaTriGoc) {
-                        duLieuHangDangSua._thongTinSua[cot] = giaTriMoi;
-                        coThayDoi = true;
-                    } else if (duLieuHangDangSua._thongTinSua[cot] !== undefined) {
-                        delete duLieuHangDangSua._thongTinSua[cot];
-                        coThayDoi = true;
+                    let asp = data['Nguyện vọng chuyển lớp'];
+                    if(asp && asp !== c && stats[asp]) {
+                        stats[c].decrease++; 
+                        stats[asp].increase++; 
                     }
                 }
             });
 
-            if (coThayDoi) {
-                // TIẾN HÀNH TÍNH TOÁN LẠI CÁC CỘT CÔNG THỨC
-                let cotSapXepCT = [...tatCaCotExcel].sort((a, b) => b.length - a.length);
+            tbody.innerHTML = '';
+            grade10Classes.forEach(c => {
+                let s = stats[c.id];
+                let actionHtml = '';
                 
-                tatCaCotExcel.forEach(cotCT => {
-                    if (cauHinhCot[cotCT] && cauHinhCot[cotCT].congThuc) {
-                        // ĐÃ CẬP NHẬT: Thay thế dấu phẩy thành chấm ngay cả trong công thức gốc để loại bỏ mọi lỗi phát sinh
-                        let chuoiToanHoc = cauHinhCot[cotCT].congThuc.replace(/,/g, '.'); 
-                        try {
-                            cotSapXepCT.forEach(cotThanhPhan => {
-                                if (cotThanhPhan !== cotCT) {
-                                    let gTriGoc = duLieuHangDangSua[cotThanhPhan] !== undefined ? duLieuHangDangSua[cotThanhPhan] : 0;
-                                    let gTriSua = duLieuHangDangSua._thongTinSua[cotThanhPhan] !== undefined ? duLieuHangDangSua._thongTinSua[cotThanhPhan] : gTriGoc;
-                                    
-                                    // ĐÃ CẬP NHẬT: Loại bỏ khoảng trắng và chuyển phẩy thành chấm
-                                    let stringVal = String(gTriSua).replace(/\s/g, '').replace(/,/g, '.');
-                                    let parsedNum = parseFloat(stringVal);
-                                    if(isNaN(parsedNum)) parsedNum = 0;
-                                    
-                                    // Boc so trong dau () giup the hien dung bieu thuc am/duong
-                                    chuoiToanHoc = chuoiToanHoc.split(cotThanhPhan).join(`(${parsedNum})`);
-                                }
-                            });
-                            
-                            let ketQuaTinh = eval(chuoiToanHoc);
-                            if (isFinite(ketQuaTinh)) {
-                                ketQuaTinh = Math.round(ketQuaTinh * 1000) / 1000;
-                            } else {
-                                ketQuaTinh = 0;
-                            }
-                            
-                            let ketQuaGoc = duLieuHangDangSua[cotCT] !== undefined ? duLieuHangDangSua[cotCT] : "";
-                            
-                            if (String(ketQuaTinh) !== String(ketQuaGoc)) {
-                                duLieuHangDangSua._thongTinSua[cotCT] = ketQuaTinh;
-                            } else if (duLieuHangDangSua._thongTinSua[cotCT] !== undefined) {
-                                delete duLieuHangDangSua._thongTinSua[cotCT];
-                            }
-                        } catch(e) {
-                            duLieuHangDangSua._thongTinSua[cotCT] = "Lỗi CT";
-                        }
-                    }
-                });
+                if (c.id === currentClass) {
+                    actionHtml = `<span class="badge bg-secondary">Lớp hiện tại</span>`;
+                } else if (c.id === currentAspiration) {
+                    actionHtml = `
+                        <span class="badge bg-success mb-1">Đang xin chuyển</span><br>
+                        <button class="btn btn-sm btn-outline-danger py-0" style="font-size: 11px;" onclick="cancelTransfer()">Hủy</button>
+                    `;
+                } else {
+                    actionHtml = `<button class="btn btn-sm btn-outline-primary py-0" onclick="registerTransfer('${c.id}')">Chọn</button>`;
+                }
 
-                const viTriGoc = duLieuHangDangSua._viTriGoc;
-                const duongDanHangSua = laRoot ? 
-                    ref(coSoDuLieu, `danh_sach_hoc_sinh/danhSach/${viTriGoc}/_thongTinSua`) :
-                    ref(coSoDuLieu, `schools/${maTruongHienTai}/danh_sach_hoc_sinh/danhSach/${viTriGoc}/_thongTinSua`);
-                
-                set(duongDanHangSua, duLieuHangDangSua._thongTinSua)
-                    .then(() => {
-                        alert("Đã cập nhật thông tin thành công!");
-                        document.getElementById('lopPhuModal').style.display = 'none';
-                        document.getElementById('khungSuaDuLieu').style.display = 'none';
-                    })
-                    .catch((loi) => {
-                        alert("Lỗi khi lưu dữ liệu lên hệ thống!");
-                        console.error(loi);
-                    });
-            } else {
-                alert("Không có thông tin nào được thay đổi.");
-                document.getElementById('lopPhuModal').style.display = 'none';
-                document.getElementById('khungSuaDuLieu').style.display = 'none';
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="fw-bold">${c.id}</td>
+                        <td><span class="badge bg-info text-dark">${c.combo}</span></td>
+                        <td class="fw-medium">${s.total}</td>
+                        <td class="text-success fw-bold">+${s.increase}</td>
+                        <td class="text-danger fw-bold">-${s.decrease}</td>
+                        <td>${actionHtml}</td>
+                    </tr>
+                `;
+            });
+        } catch(e) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-danger">Lỗi tải danh sách: ${e.message}</td></tr>`;
+        }
+    }
+
+    async function registerTransfer(targetClass) {
+        const studentId = document.getElementById('s-old-id').value;
+        const confirmStr = prompt(`Để xác nhận chuyển sang lớp ${targetClass}, em vui lòng nhập lại Mã đăng nhập của mình:`);
+        
+        if (confirmStr === studentId) {
+            try {
+                toggleLoading(true, "Đang đăng ký nguyện vọng...");
+                await db.collection('students').doc(studentId).update({ 'Nguyện vọng chuyển lớp': targetClass });
+                await loginStudent(); 
+                toggleLoading(false);
+                alert("Đăng ký thành công!");
+            } catch (e) {
+                toggleLoading(false);
+                alert("Lỗi: " + e.message);
             }
-        });
-    </script></body></html>
+        } else if (confirmStr !== null) {
+            alert("Mã đăng nhập xác nhận không chính xác!");
+        }
+    }
+
+    async function cancelTransfer() {
+        if(confirm("Em có chắc chắn muốn HỦY đăng ký nguyện vọng chuyển lớp này không?")) {
+            try {
+                toggleLoading(true, "Đang hủy đăng ký...");
+                const studentId = document.getElementById('s-old-id').value;
+                await db.collection('students').doc(studentId).update({ 'Nguyện vọng chuyển lớp': firebase.firestore.FieldValue.delete() });
+                await loginStudent(); 
+                toggleLoading(false);
+            } catch (e) {
+                toggleLoading(false);
+                alert("Lỗi: " + e.message);
+            }
+        }
+    }
+</script>
+</body>
+</html>
