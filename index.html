@@ -288,31 +288,47 @@
             </ul>
 
             <div class="tab-content p-4 border-top-0">
+                
+                <!-- Tab: Nạp Excel (SINGLE FILE UPLOAD) -->
                 <div class="tab-pane fade show active" id="tab-upload" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="text-primary fw-bold mb-0">Cập Nhật Dữ Liệu</h5>
                         <button class="btn btn-success btn-sm shadow-sm" onclick="openExportModal()">⬇️ Tải Xuống Dữ Liệu Gốc</button>
                     </div>
-                    <div class="alert alert-info py-2 small mb-4"><strong>Lưu ý:</strong> Nạp file mới sẽ xóa và ghi đè toàn bộ dữ liệu cũ của danh mục tương ứng. Bảng danh sách học sinh có thể chứa số lượng cột tùy ý. Cột <b>Mã</b> là bắt buộc để làm ID tài khoản.</div>
+                    
+                    <div class="alert alert-info py-2 small mb-4">
+                        <strong>Lưu ý:</strong> Nạp file mới sẽ xóa và ghi đè toàn bộ dữ liệu cũ của danh mục tương ứng. Bảng danh sách học sinh có thể chứa số lượng cột tùy ý. Cột <b>Mã</b> là bắt buộc để làm ID tài khoản.
+                    </div>
+
+                    <!-- Khu vực chọn tệp nguồn chung -->
+                    <div class="mb-4 p-3 bg-light border rounded">
+                        <label class="fw-bold mb-2 text-primary" style="font-size: 1.1rem;">📂 BƯỚC 1: CHỌN TỆP EXCEL NGUỒN</label>
+                        <input type="file" id="master-file-input" class="form-control form-control-lg" accept=".xlsx, .xls" onchange="handleMasterFileSelect(event)">
+                        <small class="text-muted mt-2 d-block">Chọn 1 file Excel chứa các sheet dữ liệu. Sau khi file được tải lên, hãy chọn các sheet tương ứng ở Bước 2 bên dưới để tiến hành nạp.</small>
+                    </div>
+
+                    <!-- Khu vực chọn sheet và nạp -->
+                    <label class="fw-bold mb-3 text-primary" style="font-size: 1.1rem;">BƯỚC 2: PHÂN BỔ VÀ NẠP DỮ LIỆU</label>
                     <div class="row g-4">
                         <div class="col-md-4">
                             <label class="fw-bold mb-2 small text-uppercase">1. Thông tin Lớp</label>
-                            <input type="file" id="file-classes" class="form-control mb-2" accept=".xlsx, .xls">
-                            <button class="btn btn-primary w-100" onclick="processUpload('file-classes', 'classes')">Nạp Lớp</button>
+                            <select id="sheet-select-classes" class="form-select mb-2"><option value="">-- Chọn Sheet tương ứng --</option></select>
+                            <button class="btn btn-primary w-100" onclick="processUploadFromSheet('sheet-select-classes', 'classes')">Nạp Lớp</button>
                         </div>
                         <div class="col-md-4">
                             <label class="fw-bold mb-2 small text-uppercase">2. Tổ hợp môn</label>
-                            <input type="file" id="file-combos" class="form-control mb-2" accept=".xlsx, .xls">
-                            <button class="btn btn-primary w-100" onclick="processUpload('file-combos', 'combos')">Nạp Tổ Hợp</button>
+                            <select id="sheet-select-combos" class="form-select mb-2"><option value="">-- Chọn Sheet tương ứng --</option></select>
+                            <button class="btn btn-primary w-100" onclick="processUploadFromSheet('sheet-select-combos', 'combos')">Nạp Tổ Hợp</button>
                         </div>
                         <div class="col-md-4">
                             <label class="fw-bold mb-2 small text-uppercase">3. Học sinh (Tùy biến cột)</label>
-                            <input type="file" id="file-students" class="form-control mb-2" accept=".xlsx, .xls">
-                            <button class="btn btn-primary w-100" onclick="processUpload('file-students', 'students')">Nạp Học Sinh</button>
+                            <select id="sheet-select-students" class="form-select mb-2"><option value="">-- Chọn Sheet tương ứng --</option></select>
+                            <button class="btn btn-primary w-100" onclick="processUploadFromSheet('sheet-select-students', 'students')">Nạp Học Sinh</button>
                         </div>
                     </div>
                 </div>
 
+                <!-- Tab: Cấu hình Cột & Quyền -->
                 <div class="tab-pane fade" id="tab-fields" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="text-primary fw-bold mb-0">Cài Đặt Cột Hiển Thị & Quyền Chỉnh Sửa</h5>
@@ -342,6 +358,7 @@
                     </div>
                 </div>
 
+                <!-- Tab: Quản lý trực tiếp -->
                 <div class="tab-pane fade" id="tab-manage" role="tabpanel">
                     <h5 class="text-primary fw-bold mb-3">Quản Lý & Chỉnh Sửa Dữ Liệu Trực Tiếp</h5>
                     <div class="row mb-3">
@@ -366,6 +383,7 @@
                     </div>
                 </div>
 
+                <!-- Tab: Thống Kê -->
                 <div class="tab-pane fade" id="tab-stats" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="text-primary fw-bold mb-0">Thống Kê Số Liệu Học Sinh</h5>
@@ -391,6 +409,7 @@
                     </div>
                 </div>
 
+                <!-- Tab: Bảo Mật -->
                 <div class="tab-pane fade" id="tab-security" role="tabpanel">
                     <h5 class="text-danger fw-bold mb-3">Bảo Mật Hệ Thống</h5>
                     <p class="text-muted">Đổi mã đăng nhập để bảo vệ trang quản trị khỏi truy cập trái phép.</p>
@@ -477,7 +496,10 @@
     let dynamicFields = [];
     let fieldPermissions = {};
     
-    // Biến cho Export Modal
+    // Upload Excel
+    let currentMasterWorkbook = null;
+    
+    // Export Modal
     let exportAvailableFields = [];
     let exportSelectedFields = [];
 
@@ -510,6 +532,11 @@
         document.getElementById('s-header-info').style.display = 'none';
         document.getElementById('s-transfer-section').style.display = 'none';
         document.getElementById('btn-save-student').style.display = 'none';
+        
+        // Reset file upload
+        currentMasterWorkbook = null;
+        if(document.getElementById('master-file-input')) document.getElementById('master-file-input').value = '';
+        resetSheetSelects();
     }
 
     function toggleLoading(show, text = 'Đang xử lý dữ liệu...') {
@@ -556,22 +583,51 @@
         }
     }
 
-    // ================= ADMIN: NẠP & XUẤT TÙY BIẾN =================
-    function readExcelFile(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const sheetName = workbook.SheetNames[0];
-                    const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
-                    resolve(jsonData);
-                } catch (err) { reject(err); }
-            };
-            reader.onerror = (err) => reject(err);
-            reader.readAsArrayBuffer(file);
+    // ================= ADMIN: NẠP & XUẤT (CƠ CHẾ CHỌN 1 FILE) =================
+    function resetSheetSelects() {
+        const defaultOption = '<option value="">-- Chọn Sheet tương ứng --</option>';
+        ['sheet-select-classes', 'sheet-select-combos', 'sheet-select-students'].forEach(id => {
+            if(document.getElementById(id)) document.getElementById(id).innerHTML = defaultOption;
         });
+    }
+
+    function handleMasterFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) {
+            currentMasterWorkbook = null;
+            resetSheetSelects();
+            return;
+        }
+        
+        toggleLoading(true, "Đang đọc cấu trúc file Excel...");
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = new Uint8Array(e.target.result);
+                currentMasterWorkbook = XLSX.read(data, {type: 'array'});
+                
+                // Cập nhật tùy chọn sheet vào 3 thẻ select
+                let options = '<option value="">-- Chọn Sheet tương ứng --</option>';
+                currentMasterWorkbook.SheetNames.forEach(name => {
+                    options += `<option value="${name}">${name}</option>`;
+                });
+                
+                ['sheet-select-classes', 'sheet-select-combos', 'sheet-select-students'].forEach(id => {
+                    document.getElementById(id).innerHTML = options;
+                });
+                
+                toggleLoading(false);
+            } catch(err) {
+                toggleLoading(false);
+                alert("Lỗi đọc file Excel: " + err.message);
+                resetSheetSelects();
+            }
+        };
+        reader.onerror = () => {
+            toggleLoading(false);
+            alert("Đã xảy ra lỗi khi tải file.");
+        };
+        reader.readAsArrayBuffer(file);
     }
 
     async function clearCollection(collectionName) {
@@ -588,24 +644,33 @@
         await Promise.all(batches);
     }
 
-    async function processUpload(inputId, collectionName) {
-        const fileInput = document.getElementById(inputId);
-        const file = fileInput.files[0];
-        if (!file) { alert("Vui lòng chọn file Excel!"); return; }
+    async function processUploadFromSheet(selectId, collectionName) {
+        if (!currentMasterWorkbook) {
+            alert("Vui lòng BƯỚC 1: Chọn Tệp Excel Nguồn trước!");
+            return;
+        }
+        
+        const sheetName = document.getElementById(selectId).value;
+        if (!sheetName) {
+            alert("Vui lòng chọn Sheet chứa dữ liệu cần nạp!");
+            return;
+        }
 
         try {
-            toggleLoading(true, 'Đang đọc dữ liệu Excel...');
-            const jsonData = await readExcelFile(file);
-            if (jsonData.length === 0) throw new Error("File rỗng!");
+            toggleLoading(true, `Đang xử lý dữ liệu từ sheet "${sheetName}"...`);
+            
+            // Đọc dữ liệu JSON từ Sheet được chỉ định
+            const jsonData = XLSX.utils.sheet_to_json(currentMasterWorkbook.Sheets[sheetName], { defval: "" });
+            if (jsonData.length === 0) throw new Error(`Sheet "${sheetName}" không có dữ liệu!`);
 
             if(collectionName === 'students') {
                 const headers = Object.keys(jsonData[0]);
-                if(!headers.includes('Mã')) throw new Error("File bắt buộc phải có cột tên là 'Mã' để làm ID đăng nhập.");
+                if(!headers.includes('Mã')) throw new Error("Sheet này bắt buộc phải có cột tên là 'Mã' để làm ID đăng nhập.");
                 await db.collection('config').doc('student_fields').set({ fields: headers });
                 dynamicFields = headers;
             }
 
-            toggleLoading(true, `Đang xóa dữ liệu cũ (${collectionName})...`);
+            toggleLoading(true, `Đang xóa dữ liệu cũ danh mục (${collectionName})...`);
             await clearCollection(collectionName);
 
             toggleLoading(true, `Đang nạp ${jsonData.length} bản ghi...`);
@@ -628,11 +693,13 @@
             if(collectionName === 'students') allStudentsCache = [];
 
             toggleLoading(false);
-            alert(`✅ Tải lên THÀNH CÔNG!`);
-            fileInput.value = ''; 
+            alert(`✅ Nạp thành công dữ liệu từ sheet "${sheetName}"!`);
+            
+            // Xóa lựa chọn sau khi nạp xong để tránh nạp nhầm
+            document.getElementById(selectId).value = ""; 
         } catch (error) {
             toggleLoading(false);
-            alert('Lỗi: ' + error.message);
+            alert('Lỗi quá trình nạp: ' + error.message);
         }
     }
 
