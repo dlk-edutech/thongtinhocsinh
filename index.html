@@ -52,12 +52,21 @@
         .admin-tabs .nav-link:hover { color: var(--primary-color); }
 
         /* Hiệu ứng trỏ chuột cho thẻ ở Trang chủ */
-        .role-card { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; border: 2px solid transparent; }
-        .role-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); border-color: #cbd5e1; }
+        .role-card {
+            cursor: pointer; 
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 2px solid transparent;
+        }
+        .role-card:hover {
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            border-color: #cbd5e1;
+        }
         .role-card-success:hover { border-color: #10b981; }
         .role-card-primary:hover { border-color: #3b82f6; }
         .role-card-danger:hover { border-color: #ef4444; }
         
+        /* Con trỏ cho modal xuất excel */
         .cursor-pointer { cursor: pointer; }
         .export-field-badge:hover { filter: brightness(0.9); }
     </style>
@@ -139,7 +148,12 @@
                             </ul>
                         </div>
                     </div>
-                    <h6 class="fw-bold mb-3">Danh sách học sinh</h6>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0">Danh sách học sinh</h6>
+                        <button class="btn btn-sm btn-success shadow-sm" onclick="exportGuestClassData()">⬇️ Tải Xuống Danh Sách</button>
+                    </div>
+                    
                     <div class="table-responsive">
                         <table class="table table-hover align-middle" id="guest-table-class">
                             <thead id="guest-table-class-head"></thead>
@@ -195,6 +209,7 @@
             </div>
             <div class="card-body p-4">
                 <input type="hidden" id="s-old-id">
+                <input type="hidden" id="s-grade-level">
                 
                 <div class="bg-light p-3 rounded mb-4" id="s-header-info" style="display:none;">
                     <div class="text-center mb-3">
@@ -214,6 +229,7 @@
                 
                 <div id="s-edit-notice" class="alert py-2 mb-4 small" role="alert" style="display: none;"></div>
 
+                <!-- Form động thông tin cá nhân -->
                 <div class="row g-3 mb-4" id="dynamic-student-form"></div>
                 <button class="btn btn-success w-100 py-2 mb-4" id="btn-save-student" onclick="updateStudentInfo()" style="display:none;">
                     Lưu Thông Tin Cập Nhật
@@ -272,7 +288,6 @@
             </ul>
 
             <div class="tab-content p-4 border-top-0">
-                <!-- Tab: Nạp Excel -->
                 <div class="tab-pane fade show active" id="tab-upload" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="text-primary fw-bold mb-0">Cập Nhật Dữ Liệu</h5>
@@ -298,7 +313,6 @@
                     </div>
                 </div>
 
-                <!-- Tab: Cấu hình Cột & Quyền -->
                 <div class="tab-pane fade" id="tab-fields" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="text-primary fw-bold mb-0">Cài Đặt Cột Hiển Thị & Quyền Chỉnh Sửa</h5>
@@ -328,7 +342,6 @@
                     </div>
                 </div>
 
-                <!-- Tab: Quản lý trực tiếp -->
                 <div class="tab-pane fade" id="tab-manage" role="tabpanel">
                     <h5 class="text-primary fw-bold mb-3">Quản Lý & Chỉnh Sửa Dữ Liệu Trực Tiếp</h5>
                     <div class="row mb-3">
@@ -353,7 +366,6 @@
                     </div>
                 </div>
 
-                <!-- Tab: Thống Kê -->
                 <div class="tab-pane fade" id="tab-stats" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="text-primary fw-bold mb-0">Thống Kê Số Liệu Học Sinh</h5>
@@ -379,7 +391,6 @@
                     </div>
                 </div>
 
-                <!-- Tab: Bảo Mật -->
                 <div class="tab-pane fade" id="tab-security" role="tabpanel">
                     <h5 class="text-danger fw-bold mb-3">Bảo Mật Hệ Thống</h5>
                     <p class="text-muted">Đổi mã đăng nhập để bảo vệ trang quản trị khỏi truy cập trái phép.</p>
@@ -466,6 +477,7 @@
     let dynamicFields = [];
     let fieldPermissions = {};
     
+    // Biến cho Export Modal
     let exportAvailableFields = [];
     let exportSelectedFields = [];
 
@@ -694,17 +706,21 @@
             toggleLoading(true, 'Đang gom dữ liệu, vui lòng chờ...');
             const wb = XLSX.utils.book_new();
 
+            // 1. Xuất Lớp
             const clsSnap = await db.collection('classes').get();
             const clsData = []; clsSnap.forEach(d => clsData.push(d.data()));
             XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(clsData), "Thông tin Lớp");
 
+            // 2. Xuất Tổ Hợp
             const cbSnap = await db.collection('combos').get();
             const cbData = []; cbSnap.forEach(d => cbData.push(d.data()));
             XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(cbData), "Tổ Hợp Môn");
 
+            // 3. Xuất Học Sinh (Sắp xếp Lớp -> STT, filter cột)
             const stSnap = await db.collection('students').get();
             const stData = []; stSnap.forEach(d => stData.push(d.data()));
             
+            // Sort: Lớp -> STT
             stData.sort((a, b) => {
                 let classA = (a['Lớp'] || '').toString().trim();
                 let classB = (b['Lớp'] || '').toString().trim();
@@ -819,7 +835,6 @@
         const thead = document.getElementById('admin-table-head');
         const btnAddCol = document.getElementById('btn-add-column');
         
-        // Hiện nút Thêm Cột nếu đang xem bảng Học sinh
         btnAddCol.style.display = (collection === 'students') ? 'block' : 'none';
 
         tbody.innerHTML = '<tr><td colspan="20" class="text-center py-4">Đang tải dữ liệu...</td></tr>';
@@ -846,7 +861,6 @@
         } catch (error) { tbody.innerHTML = `<tr><td colspan="20" class="text-danger">Lỗi: ${error.message}</td></tr>`; }
     }
 
-    // [TÍNH NĂNG MỚI] Thêm Cột
     async function addNewStudentColumn() {
         let newCol = prompt("Nhập tên trường dữ liệu mới (VD: Số điện thoại, Địa chỉ, Sở thích...):");
         if (!newCol) return;
@@ -863,7 +877,6 @@
             dynamicFields.push(newCol);
             await db.collection('config').doc('student_fields').set({ fields: dynamicFields }, { merge: true });
             
-            // Khởi tạo quyền mặc định: Khóa hiển thị, Khóa sửa
             fieldPermissions[newCol] = { visible: false, editable: false };
             await db.collection('config').doc('permissions').set({ perms: fieldPermissions }, { merge: true });
             
@@ -1140,6 +1153,54 @@
             }
             infoDiv.style.display = 'block';
         } catch (e) { alert("Lỗi: " + e.message); }
+    }
+
+    async function exportGuestClassData() {
+        const className = document.getElementById('guest-class-select').value;
+        if(!className) return;
+        
+        try {
+            toggleLoading(true, 'Đang tạo file Excel...');
+            const wb = XLSX.utils.book_new();
+            
+            const classInfo = [{
+                'Lớp': className,
+                'Giáo viên chủ nhiệm': document.getElementById('g-teacher').innerText,
+                'Mã Tổ hợp': document.getElementById('g-combo').innerText,
+                'Môn bắt buộc': document.getElementById('g-mandatory').innerText,
+                'Môn tự chọn': document.getElementById('g-elective').innerText,
+                'Chuyên đề': document.getElementById('g-specialized').innerText
+            }];
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(classInfo), "Thông tin Lớp");
+            
+            const snap = await db.collection('students').where('Lớp', '==', className).get();
+            let arr = []; 
+            snap.forEach(d => arr.push(d.data()));
+            arr.sort((a,b) => (isNaN(parseInt(a['STT']))?9999:parseInt(a['STT'])) - (isNaN(parseInt(b['STT']))?9999:parseInt(b['STT'])));
+            
+            const exportData = arr.map(s => {
+                let row = {};
+                dynamicFields.forEach(f => {
+                    if (f === 'Mã' || f === 'Nguyện vọng chuyển lớp') return;
+                    if (fieldPermissions[f]?.visible || f === 'Họ và tên' || f === 'Lớp' || f === 'STT') {
+                        row[f] = s[f] || '';
+                    }
+                });
+                return row;
+            });
+            
+            if (exportData.length === 0) {
+                exportData.push({'Thông báo': 'Chưa có dữ liệu học sinh'});
+            }
+            
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(exportData), "Danh sách Học sinh");
+            
+            XLSX.writeFile(wb, `DanhSachLop_${className}.xlsx`);
+            toggleLoading(false);
+        } catch (e) {
+            toggleLoading(false);
+            alert("Lỗi xuất dữ liệu: " + e.message);
+        }
     }
 
     async function forceReloadCache() {
