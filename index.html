@@ -66,6 +66,10 @@
         .role-card-primary:hover { border-color: #3b82f6; }
         .role-card-danger:hover { border-color: #ef4444; }
         
+        /* Custom Purple for Timetable */
+        .text-purple { color: #8b5cf6 !important; }
+        .role-card-purple:hover { border-color: #8b5cf6; }
+
         /* Con trỏ cho modal xuất excel */
         .cursor-pointer { cursor: pointer; }
         .export-field-badge:hover { filter: brightness(0.9); }
@@ -96,27 +100,42 @@
     <div id="role-selector" class="view-section active-view">
         <div class="text-center mb-5">
             <h2 class="fw-bold mb-3">Cổng Thông Tin Học Sinh</h2>
-            <p class="text-muted">Vui lòng chọn vai trò để tiếp tục truy cập vào hệ thống</p>
+            <p class="text-muted">Vui lòng chọn vai trò hoặc tiện ích để tiếp tục</p>
         </div>
         <div class="row justify-content-center g-4">
-            <div class="col-md-4 col-sm-6">
+            <div class="col-md-6 col-lg-3">
                 <div class="card h-100 text-center p-4 role-card role-card-success" onclick="showView('guest-view'); loadGuestData()">
                     <h3 class="mb-3">🔍</h3><h5 class="fw-bold text-success">Khách Truy Cập</h5>
                     <p class="text-muted small mb-0">Tra cứu thông tin lớp học, tổ hợp môn và tìm kiếm học sinh.</p>
                 </div>
             </div>
-            <div class="col-md-4 col-sm-6">
+            <div class="col-md-6 col-lg-3">
                 <div class="card h-100 text-center p-4 role-card role-card-primary" onclick="showView('student-login')">
                     <h3 class="mb-3">🎓</h3><h5 class="fw-bold text-primary">Học Sinh</h5>
                     <p class="text-muted small mb-0">Đăng nhập để xem và cập nhật thông tin cá nhân của bạn.</p>
                 </div>
             </div>
-            <div class="col-md-4 col-sm-6">
+            <!-- BẢNG THỜI KHÓA BIỂU MỚI THÊM -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 text-center p-4 role-card role-card-purple" onclick="showView('timetable-view')">
+                    <h3 class="mb-3">📅</h3><h5 class="fw-bold text-purple">Thời Khóa Biểu</h5>
+                    <p class="text-muted small mb-0">Tra cứu nhanh lịch học và thời khóa biểu của trường.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
                 <div class="card h-100 text-center p-4 role-card role-card-danger" onclick="showView('admin-login')">
                     <h3 class="mb-3">⚙️</h3><h5 class="fw-bold text-danger">Quản Trị Viên</h5>
                     <p class="text-muted small mb-0">Khu vực dành riêng cho nhà trường để quản lý dữ liệu.</p>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- TIỆN ÍCH: THỜI KHÓA BIỂU -->
+    <div id="timetable-view" class="view-section">
+        <button class="btn btn-light mb-3 shadow-sm" onclick="logout()">← Quay lại</button>
+        <div class="card shadow-sm" style="height: 80vh; overflow: hidden;">
+            <iframe src="https://dlk-edutech.github.io/pccm/tracuu.html" style="width: 100%; height: 100%; border: none;"></iframe>
         </div>
     </div>
 
@@ -1386,7 +1405,7 @@
                 noticeEl.style.display = 'block';
                 if(canEdit) {
                     noticeEl.className = 'alert alert-info py-2 mb-4 small';
-                    noticeEl.innerHTML = `💡 <strong>Thông báo:</strong> Em được phép cập nhật các thông tin: <span class="fw-bold text-primary">${allowedFieldsList.join(', ')}</span>.`;
+                    noticeEl.innerHTML = `💡 <strong>Thông báo:</strong> Em được phép cập nhật các thông hiện: <span class="fw-bold text-primary">${allowedFieldsList.join(', ')}</span>.`;
                 } else {
                     noticeEl.className = 'alert alert-secondary py-2 mb-4 small';
                     noticeEl.innerHTML = `🔒 <strong>Thông báo:</strong> Nhà trường đã khóa cập nhật. Vui lòng liên hệ GVCN nếu có sai sót.`;
