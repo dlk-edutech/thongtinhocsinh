@@ -1058,7 +1058,7 @@
     async function loginAdmin() {
         const pw = document.getElementById('admin-pw').value;
         try {
-            let realPw = "11043006";
+            let realPw = "11111111";
             try {
                 const doc = await db.collection('config').doc('admin').get();
                 if (doc.exists && doc.data().password) {
